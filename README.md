@@ -18,7 +18,7 @@ Model families evaluated:
 
 ```bash
 # Clone
-git clone https://github.com/<user>/phishing-detection-benchmark.git
+git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
 cd phishing-detection-benchmark
 
 # Environment
