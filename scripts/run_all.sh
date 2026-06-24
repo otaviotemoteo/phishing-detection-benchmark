@@ -31,11 +31,15 @@ echo "[Phase 0] Verifying environment..."
 python scripts/verify_environment.py
 
 # -----------------------------------------------------------------------------
-# Phase 1 — EDA (TODO)
+# Phase 1 — EDA
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 1] Running EDA..."
-# jupyter nbconvert --execute notebooks/01_eda.ipynb --to notebook --inplace
+echo ""
+echo "[Phase 1] Downloading datasets..."
+bash scripts/download_datasets.sh
+
+echo ""
+echo "[Phase 1] Running EDA notebook..."
+jupyter nbconvert --execute notebooks/01_eda.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
 # Phase 2 — Preprocessing + minimal pipeline (TODO)
