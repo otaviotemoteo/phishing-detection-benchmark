@@ -1,0 +1,54 @@
+{
+  "experiment_id": "LogisticRegression_uci_20260623_235643",
+  "timestamp": "2026-06-23T23:56:44.584603-03:00",
+  "model": "LogisticRegression",
+  "dataset": "uci",
+  "dataset_hash": "685e9fbdbe08c8b23fdb82e06cf5e154a8516e93f7b07f8a67328f17f86d0d72",
+  "git_commit": "e1255f6",
+  "seed": 42,
+  "hyperparameters": {
+    "C": 1.0,
+    "class_weight": null,
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": null,
+    "max_iter": 1000,
+    "multi_class": "deprecated",
+    "n_jobs": null,
+    "penalty": "l2",
+    "random_state": 42,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.9361060880048222,
+    "precision": 0.9314128943758574,
+    "recall": 0.9238095238095239,
+    "f1": 0.9275956284153005,
+    "auc_roc": 0.9808883293577171
+  },
+  "cost": {
+    "training_time_s": 0.0359,
+    "inference_time_ms_per_sample": 0.001105,
+    "peak_ram_mb": 576.4,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/LogisticRegression_uci_20260623_235643.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/LogisticRegression_uci.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/LogisticRegression_uci.png"
+  }
+}
