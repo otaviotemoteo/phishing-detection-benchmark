@@ -248,3 +248,56 @@ transfer is meaningful. For any within-ISCX use, binarize as **phishing vs benig
 - Schema confirmed in `notebooks/01_eda.ipynb` §3; hash in `data/dataset_hashes.json`
 
 ---
+
+## D-006: Classical ML protocol — leakage-safe tuning, per-dataset features, SVM cap
+
+**Date:** 2026-06-24
+**Status:** Accepted
+**Phase:** 3
+
+### Context
+
+Phase 3 runs 6 models × 3 datasets with hyperparameter tuning. Several protocol
+choices affect validity and feasibility and must be fixed once for all 18 runs.
+
+### Decision
+
+1. **Leakage-safe tuning.** Each experiment is a single `imblearn.pipeline.Pipeline`
+   — `SimpleImputer(median) → StandardScaler → SMOTE → estimator` — wrapped in
+   `RandomizedSearchCV` (`n_iter=20`, `StratifiedKFold(5)`, `scoring="f1"`). Because
+   impute/scale/SMOTE live inside the pipeline, they are refit per CV fold on
+   training data only — never leaking across folds or into test (§6.2). SMOTE, a
+   sampler, is auto-skipped at predict time.
+2. **Splits.** CV-tune on the **70% train**; evaluate once on the **15% test**. The
+   **15% val is reserved for Phase 4** DL early-stopping (kept identical across phases).
+3. **Per-dataset features** (within-dataset benchmark): UCI uses its 30 structured
+   features; Mendeley uses lexical URL features (`src/data/feature_engineering.py`);
+   ISCX uses its 79 lexical features. Cross-dataset alignment stays a Phase 6 problem (D-005).
+4. **ISCX = phishing vs benign.** Binarize by keeping only `phishing` (1) and
+   `benign` (0) rows (~15k), dropping Defacement/malware/spam — so all datasets mean
+   "phishing vs legitimate" (finalizes the open part of D-005). `inf` ratio values
+   are mapped to NaN and median-imputed.
+5. **SVM subsample cap.** RBF-SVM trains on a stratified ≤15,000-row sample on large
+   datasets (full data for UCI) to keep O(n²) training feasible; the cap is recorded
+   in each manifest (`cost.train_subsample_n`).
+
+### Alternatives considered
+
+- `sklearn.pipeline.Pipeline` for tuning: rejected — applies SMOTE during transform
+  on CV-validation folds, leaking synthetic samples (§6.2 names this explicitly).
+- ISCX phishing-vs-all-others: rejected — mixes benign with other malware in the
+  negative class, breaking comparability with UCI/Mendeley (see D-005).
+- SVM on UCI only: rejected — would leave the comparison table incomplete (16/18).
+
+### Consequences
+
+- All 18 experiments are tuned and scored identically and reproducibly.
+- The saved artifact per run is the fitted `imblearn` Pipeline (self-contained).
+- SVM results on large datasets reflect a capped training set — noted in the dissertation.
+
+### References
+
+- DEVELOPMENT.md §6.2 (leakage), §5 (models); Planejamento §5.1
+- `src/experiments/runner.py`, `src/models/classical.py`, `src/data/preprocessing.py`
+
+---
