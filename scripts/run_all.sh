@@ -50,11 +50,12 @@ jupyter nbconvert --execute notebooks/02_preprocessing.ipynb --to notebook --inp
 jupyter nbconvert --execute notebooks/03_ml_classical.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
-# Phase 3 — Classical ML (TODO)
+# Phase 3 — Classical ML
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 3] Classical ML benchmark..."
-# jupyter nbconvert --execute notebooks/03_ml_classical.ipynb --to notebook --inplace
+echo ""
+echo "[Phase 3] Classical ML benchmark (6 models x 3 datasets)..."
+python -m src.experiments.run_classical --all
+jupyter nbconvert --execute notebooks/03_ml_classical.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
 # Phase 4 — Deep Learning (TODO)
