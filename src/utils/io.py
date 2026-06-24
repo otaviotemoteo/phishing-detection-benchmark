@@ -131,5 +131,32 @@ def append_metrics_row(csv_path: Path, row: dict) -> None:
         writer.writerow(row)
 
 
+def upsert_metrics_row(csv_path: Path, row: dict, keys=("model", "dataset")) -> None:
+    """Insert or replace a metrics row, keyed by ``keys`` — one row per key tuple.
+
+    Unlike `append_metrics_row`, re-running an experiment overwrites its previous
+    row instead of duplicating it, so ``metrics_ml.csv`` stays at one row per
+    (model, dataset). Reads/writes the whole (small) CSV each call.
+
+    Args:
+        csv_path: Destination CSV path.
+        row: Mapping of column name -> value for a single experiment.
+        keys: Columns that uniquely identify an experiment.
+    """
+    import pandas as pd
+
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    new = pd.DataFrame([row])
+    if csv_path.exists():
+        df = pd.read_csv(csv_path)
+        mask = pd.Series(True, index=df.index)
+        for key in keys:
+            mask &= df[key] == row[key]
+        df = pd.concat([df.loc[~mask], new], ignore_index=True)
+    else:
+        df = new
+    df.to_csv(csv_path, index=False)
+
+
 if __name__ == "__main__":
     write_dataset_hashes()
