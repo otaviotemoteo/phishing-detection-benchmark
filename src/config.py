@@ -31,6 +31,13 @@ SMOTE_K_NEIGHBORS: int = 5
 CV_FOLDS: int = 5
 
 # =============================================================================
+# Hyperparameter search (classical ML — Phase 3)
+# =============================================================================
+RANDOMIZED_SEARCH_N_ITER: int = 20  # candidates sampled per RandomizedSearchCV
+SEARCH_SCORING: str = "f1"  # phishing is the positive class (D-004)
+SVM_MAX_TRAIN_SAMPLES: int = 15_000  # stratified cap for SVM on large datasets (D-006)
+
+# =============================================================================
 # Feature engineering (URLs)
 # =============================================================================
 MAX_URL_LENGTH: int = 200  # Truncation length for DL models — see D-XXX once decided
