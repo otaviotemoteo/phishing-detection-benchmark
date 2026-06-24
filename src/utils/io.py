@@ -15,6 +15,7 @@ This writes ``data/dataset_hashes.json`` — the entry point already documented 
 """
 from __future__ import annotations
 
+import csv
 import hashlib
 import json
 from datetime import datetime, timezone
@@ -108,6 +109,26 @@ def load_dataset_hashes(data_dir: Path = DATA_DIR) -> dict[str, dict]:
     if not hashes_path.exists():
         return {}
     return json.loads(hashes_path.read_text())
+
+
+def append_metrics_row(csv_path: Path, row: dict) -> None:
+    """Append one metrics row to a CSV, writing the header if the file is new.
+
+    The column order is fixed by the keys of the first row written. Used to build
+    the standardized ``metrics_ml.csv`` / ``metrics_dl.csv`` tables (DEVELOPMENT.md
+    §8.2).
+
+    Args:
+        csv_path: Destination CSV path.
+        row: Mapping of column name -> value for a single experiment.
+    """
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    is_new = not csv_path.exists()
+    with open(csv_path, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(row.keys()))
+        if is_new:
+            writer.writeheader()
+        writer.writerow(row)
 
 
 if __name__ == "__main__":
