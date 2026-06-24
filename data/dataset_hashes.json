@@ -1,4 +1,10 @@
 {
+  "iscx_url2016.csv": {
+    "bytes": 11661240,
+    "modified": "2026-06-24T02:45:42.655952+00:00",
+    "name": "iscx",
+    "sha256": "39bd96b0c4738daf7be9db7fb9561512afa5599ab34484aa5b7e70c1c55034c5"
+  },
   "mendeley_phishing.csv": {
     "bytes": 9153516,
     "modified": "2026-06-23T16:53:10.991256+00:00",
