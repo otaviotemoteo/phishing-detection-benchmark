@@ -9,6 +9,7 @@ order lives in `src.experiments.runner`.
 """
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split
@@ -38,12 +39,14 @@ def to_xy(df: pd.DataFrame, dataset: str) -> tuple[pd.DataFrame, pd.Series]:
         dataset: ``'uci'`` | ``'mendeley'`` | ``'iscx'``.
 
     Returns:
-        ``(X, y)``. For UCI, ``X`` is the 30 structured features and ``y`` is
-        ``Result`` remapped to the D-004 convention.
+        ``(X, y)`` with ``y`` in the D-004 convention (1 = phishing, 0 = legit):
+        - ``uci``: ``X`` is the 30 structured features; ``Result`` remapped.
+        - ``mendeley``: ``X`` is lexical URL features (Planejamento §4.4); ``y`` is
+          ``result`` (already 0/1).
+        - ``iscx``: binarized **phishing vs benign** (D-006) — other attack classes
+          dropped; ``X`` is the 79 lexical features (NaNs left for the pipeline imputer).
 
     Raises:
-        NotImplementedError: For ``mendeley`` / ``iscx`` — these need URL feature
-            engineering, built in Phase 3/4.
         KeyError: For an unknown dataset name.
     """
     if dataset == "uci":
@@ -53,11 +56,25 @@ def to_xy(df: pd.DataFrame, dataset: str) -> tuple[pd.DataFrame, pd.Series]:
         X = df.drop(columns=["Result"])
         return X, y.astype(int)
 
-    if dataset in ("mendeley", "iscx"):
-        raise NotImplementedError(
-            f"to_xy('{dataset}') needs URL feature engineering (Phase 3/4). "
-            f"Only 'uci' is supported in the Phase 2 minimal pipeline."
-        )
+    if dataset == "mendeley":
+        from src.data.feature_engineering import extract_url_features
+
+        assert {"url", "result"}.issubset(df.columns), "Mendeley needs 'url' and 'result'"
+        X = extract_url_features(df["url"])
+        y = df["result"].astype(int)
+        assert set(y.unique()).issubset({LEGITIMATE, PHISHING}), "Mendeley result must be 0/1"
+        return X, y
+
+    if dataset == "iscx":
+        label = "URL_Type_obf_Type"
+        assert label in df.columns, f"ISCX needs the '{label}' column"
+        # D-006: binary phishing-vs-benign; drop Defacement/malware/spam.
+        sub = df[df[label].isin(["phishing", "benign"])].copy()
+        y = (sub[label] == "phishing").astype(int)
+        X = sub.drop(columns=[label]).apply(pd.to_numeric, errors="coerce")
+        # ISCX has inf in some ratio columns (÷0); the imputer only fills NaN.
+        X = X.replace([np.inf, -np.inf], np.nan)
+        return X.reset_index(drop=True), y.reset_index(drop=True)
 
     raise KeyError(f"Unknown dataset '{dataset}'")
 
@@ -129,3 +146,17 @@ def fit_scaler(X_train) -> StandardScaler:
 def transform_features(scaler: StandardScaler, X):
     """Apply an already-fitted scaler. Returns a NumPy array."""
     return scaler.transform(X)
+
+
+def stratified_subsample(X, y, n: int, seed: int = RANDOM_SEED):
+    """Return a stratified subsample of about ``n`` rows (no-op if already ≤ n).
+
+    Used to keep RBF-SVM training feasible on the large datasets (D-006); the class
+    balance is preserved so the subsample stays representative.
+    """
+    if len(X) <= n:
+        return X, y
+    X_sub, _, y_sub, _ = train_test_split(
+        X, y, train_size=n, stratify=y, random_state=seed
+    )
+    return X_sub, y_sub
