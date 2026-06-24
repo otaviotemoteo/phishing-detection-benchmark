@@ -12,6 +12,54 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-24 — Phase 3 (classical ML complete)
+
+### What I did
+
+Built and ran the full classical ML benchmark — **6 models × 3 datasets = 18 tuned
+experiments**. Added URL feature engineering, the model factory, leakage-safe tuning,
+and the `run_classical` orchestrator.
+
+### Results
+
+- New code: `src/data/feature_engineering.py` (13 lexical URL features),
+  `src/models/classical.py` (6-model factory + grids), `src/experiments/run_classical.py`
+  (CLI). `runner.py` refactored to an `imblearn` Pipeline (impute→scale→SMOTE→model)
+  wrapped in `RandomizedSearchCV` (5-fold, F1); added `upsert_metrics_row` +
+  `save_feature_importance`.
+- **18/18 succeeded in 39.5 min** (CPU). `metrics_ml.csv` complete; 18 confusion
+  matrices + ROC + manifests; 12 feature-importance plots (DT/RF/XGB/CatBoost × 3).
+- Best F1 per dataset: **UCI** RandomForest 0.967 (AUC 0.997); **Mendeley**
+  XGBoost/CatBoost 0.857 (AUC 0.96); **ISCX** XGBoost 0.987 (AUC 0.999).
+- Tree ensembles (RF/XGB/CatBoost) consistently beat DT and LR; XGBoost the most
+  consistent top performer.
+- **Mendeley is clearly hardest** (~0.86 F1) — lexical URL features are weaker than
+  UCI's structured features and ISCX's 79-feature set. A real, discussable finding.
+- Protocol (D-006): ISCX = phishing-vs-benign; SVM training capped at 15k on Mendeley
+  (recorded in manifest); val split reserved for Phase 4.
+
+### What worked
+
+- Smoke-testing DecisionTree on all 3 datasets first caught two bugs before the long
+  run: ISCX `inf` values (→ NaN→median impute) and a `--all` CLI flag mismatch.
+- The `imblearn` Pipeline unifies impute/scale/SMOTE inside CV — no leakage — and the
+  saved artifact is a self-contained pipeline.
+- The one-line model swap (§1.2) held: the same runner drove all six models.
+
+### What didn't
+
+- First full-run attempt no-op'd on an unrecognized `--all` flag (added the flag, re-ran).
+- SVM with `probability=True` is slow; the 15k Mendeley cap kept it feasible (~5 min).
+
+### Next
+
+- **Phase 4 — Deep Learning** (CNN / LSTM / CNN-LSTM, PyTorch) on the raw URL character
+  sequence; char-level tokenization; GTX 1060 3 GB VRAM constraints apply. Uses the
+  reserved val split for early stopping.
+- ISCX raw-URL acquisition remains open for the Phase 6 cross-dataset test (D-005).
+
+---
+
 ## 2026-06-24 — ISCX-URL2016 integrated
 
 ### What I did
