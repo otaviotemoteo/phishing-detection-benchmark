@@ -8,7 +8,7 @@ This directory holds the three datasets used in the experiments. **Raw CSV files
 |---|---|---|---|
 | UCI Phishing Websites | 11,055 | 30 structured (±1) | https://archive.ics.uci.edu/dataset/327/phishing+websites |
 | Mendeley Phishing Websites Dataset | 80,000 | raw URL (+ HTML filename) | https://data.mendeley.com/datasets/n96ncsr5g4/1 |
-| ISCX-URL2016 | ~36,000 | classified raw URLs | https://www.unb.ca/cic/datasets/url-2016.html |
+| ISCX-URL2016 | 36,707 | 79 lexical URL features (5-class label) | https://www.unb.ca/cic/datasets/url-2016.html |
 
 > **Mendeley note (see D-003):** the published download is a single `index.sql`
 > with columns `rec_id, url, website, result, created_date` (80,000 rows; `result`
@@ -16,8 +16,12 @@ This directory holds the three datasets used in the experiments. **Raw CSV files
 > the HTML *content* is not distributed. `scripts/convert_datasets.py` converts the
 > SQL dump to `mendeley_phishing.csv`.
 >
-> **ISCX note:** UNB CIC distributes ISCX-URL2016 behind a registration form, so it
-> is **not** auto-downloaded — `scripts/download_datasets.sh` prints manual steps.
+> **ISCX note (see D-005):** UNB CIC distributes ISCX-URL2016 behind a registration
+> form, so it is **not** auto-downloaded — `scripts/download_datasets.sh` prints the
+> manual steps. The export in use is the *lexical-feature* version (79 numeric features
+> + a 5-class `URL_Type_obf_Type` label), **not** raw URLs; this affects the
+> cross-dataset plan (D-005). It loads directly via `load_raw("iscx")` (already a CSV,
+> no converter needed).
 
 ## Expected filenames after download
 
