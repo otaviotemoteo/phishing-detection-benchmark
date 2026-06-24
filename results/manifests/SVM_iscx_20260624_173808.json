@@ -1,0 +1,60 @@
+{
+  "experiment_id": "SVM_iscx_20260624_173808",
+  "timestamp": "2026-06-24T17:39:57.852989-03:00",
+  "model": "SVM",
+  "dataset": "iscx",
+  "dataset_hash": "39bd96b0c4738daf7be9db7fb9561512afa5599ab34484aa5b7e70c1c55034c5",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "C": 10.0,
+    "break_ties": false,
+    "cache_size": 200,
+    "class_weight": null,
+    "coef0": 0.0,
+    "decision_function_shape": "ovr",
+    "degree": 3,
+    "gamma": "scale",
+    "kernel": "rbf",
+    "max_iter": -1,
+    "probability": true,
+    "random_state": 42,
+    "shrinking": true,
+    "tol": 0.001,
+    "verbose": false,
+    "_best_params": {
+      "kernel": "rbf",
+      "gamma": "scale",
+      "C": 10.0
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.9813529921942759,
+    "precision": 0.9858030168589175,
+    "recall": 0.976274165202109,
+    "f1": 0.9810154525386313,
+    "auc_roc": 0.9965467534968823,
+    "cv_f1": 0.9775
+  },
+  "cost": {
+    "training_time_s": 108.491,
+    "inference_time_ms_per_sample": 0.086242,
+    "peak_ram_mb": 988.5,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/SVM_iscx_20260624_173808.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/SVM_iscx.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/SVM_iscx.png"
+  }
+}

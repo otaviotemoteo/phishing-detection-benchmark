@@ -1,0 +1,51 @@
+{
+  "experiment_id": "CatBoost_mendeley_20260624_171548",
+  "timestamp": "2026-06-24T17:20:30.396086-03:00",
+  "model": "CatBoost",
+  "dataset": "mendeley",
+  "dataset_hash": "e4461460c92dfc2ccd9cd63d9c0650ba321a6829fbde7551f5fd9fbc9bf64a27",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "verbose": 0,
+    "random_state": 42,
+    "learning_rate": 0.1,
+    "iterations": 600,
+    "depth": 8,
+    "_best_params": {
+      "learning_rate": 0.1,
+      "iterations": 600,
+      "depth": 8
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.8934166666666666,
+    "precision": 0.8616662923871548,
+    "recall": 0.8526666666666667,
+    "f1": 0.8571428571428571,
+    "auc_roc": 0.9586927851851852,
+    "cv_f1": 0.861
+  },
+  "cost": {
+    "training_time_s": 280.0242,
+    "inference_time_ms_per_sample": 0.002332,
+    "peak_ram_mb": 998.1,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/CatBoost_mendeley_20260624_171548.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/CatBoost_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/CatBoost_mendeley.png",
+    "feature_importance": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/plots/feature_importance/CatBoost_mendeley.png"
+  }
+}

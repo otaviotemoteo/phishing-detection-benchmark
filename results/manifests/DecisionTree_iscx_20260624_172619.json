@@ -1,0 +1,59 @@
+{
+  "experiment_id": "DecisionTree_iscx_20260624_172619",
+  "timestamp": "2026-06-24T17:26:31.617528-03:00",
+  "model": "DecisionTree",
+  "dataset": "iscx",
+  "dataset_hash": "39bd96b0c4738daf7be9db7fb9561512afa5599ab34484aa5b7e70c1c55034c5",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "entropy",
+    "max_depth": 30,
+    "max_features": null,
+    "max_leaf_nodes": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "random_state": 42,
+    "splitter": "best",
+    "_best_params": {
+      "min_samples_split": 2,
+      "max_depth": 30,
+      "criterion": "entropy"
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.9726799653078925,
+    "precision": 0.9864253393665159,
+    "recall": 0.9578207381370826,
+    "f1": 0.9719126170307624,
+    "auc_roc": 0.972489136191829,
+    "cv_f1": 0.9718
+  },
+  "cost": {
+    "training_time_s": 11.2189,
+    "inference_time_ms_per_sample": 0.002119,
+    "peak_ram_mb": 989.4,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/DecisionTree_iscx_20260624_172619.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/DecisionTree_iscx.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/DecisionTree_iscx.png",
+    "feature_importance": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/plots/feature_importance/DecisionTree_iscx.png"
+  }
+}

@@ -1,13 +1,13 @@
 {
-  "experiment_id": "LogisticRegression_uci_20260623_235643",
-  "timestamp": "2026-06-23T23:56:44.584603-03:00",
+  "experiment_id": "LogisticRegression_uci_20260624_170301",
+  "timestamp": "2026-06-24T17:03:03.177235-03:00",
   "model": "LogisticRegression",
   "dataset": "uci",
   "dataset_hash": "685e9fbdbe08c8b23fdb82e06cf5e154a8516e93f7b07f8a67328f17f86d0d72",
-  "git_commit": "e1255f6",
+  "git_commit": "785ffd8",
   "seed": 42,
   "hyperparameters": {
-    "C": 1.0,
+    "C": 0.01,
     "class_weight": null,
     "dual": false,
     "fit_intercept": true,
@@ -18,10 +18,15 @@
     "n_jobs": null,
     "penalty": "l2",
     "random_state": 42,
-    "solver": "lbfgs",
+    "solver": "liblinear",
     "tol": 0.0001,
     "verbose": 0,
-    "warm_start": false
+    "warm_start": false,
+    "_best_params": {
+      "solver": "liblinear",
+      "penalty": "l2",
+      "C": 0.01
+    }
   },
   "library_versions": {
     "python": "3.11.15",
@@ -33,21 +38,22 @@
     "torch": "2.4.1"
   },
   "metrics": {
-    "accuracy": 0.9361060880048222,
-    "precision": 0.9314128943758574,
-    "recall": 0.9238095238095239,
-    "f1": 0.9275956284153005,
-    "auc_roc": 0.9808883293577171
+    "accuracy": 0.9336949969861362,
+    "precision": 0.9310344827586207,
+    "recall": 0.9183673469387755,
+    "f1": 0.9246575342465754,
+    "auc_roc": 0.9796897546897547,
+    "cv_f1": 0.9158
   },
   "cost": {
-    "training_time_s": 0.0359,
-    "inference_time_ms_per_sample": 0.001105,
-    "peak_ram_mb": 576.4,
+    "training_time_s": 1.5327,
+    "inference_time_ms_per_sample": 0.001431,
+    "peak_ram_mb": 761.0,
     "gpu_used": false,
     "n_parameters": null
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/LogisticRegression_uci_20260623_235643.joblib",
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/LogisticRegression_uci_20260624_170301.joblib",
     "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/LogisticRegression_uci.png",
     "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/LogisticRegression_uci.png"
   }

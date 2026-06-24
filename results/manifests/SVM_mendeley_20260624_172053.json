@@ -1,0 +1,61 @@
+{
+  "experiment_id": "SVM_mendeley_20260624_172053",
+  "timestamp": "2026-06-24T17:26:19.486324-03:00",
+  "model": "SVM",
+  "dataset": "mendeley",
+  "dataset_hash": "e4461460c92dfc2ccd9cd63d9c0650ba321a6829fbde7551f5fd9fbc9bf64a27",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "C": 10.0,
+    "break_ties": false,
+    "cache_size": 200,
+    "class_weight": null,
+    "coef0": 0.0,
+    "decision_function_shape": "ovr",
+    "degree": 3,
+    "gamma": "auto",
+    "kernel": "rbf",
+    "max_iter": -1,
+    "probability": true,
+    "random_state": 42,
+    "shrinking": true,
+    "tol": 0.001,
+    "verbose": false,
+    "_best_params": {
+      "kernel": "rbf",
+      "gamma": "auto",
+      "C": 10.0
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.8586666666666667,
+    "precision": 0.7924488944513975,
+    "recall": 0.8442222222222222,
+    "f1": 0.8175166774262965,
+    "auc_roc": 0.9373735407407409,
+    "cv_f1": 0.8214
+  },
+  "cost": {
+    "training_time_s": 316.2527,
+    "inference_time_ms_per_sample": 0.30446,
+    "peak_ram_mb": 1009.3,
+    "gpu_used": false,
+    "n_parameters": null,
+    "train_subsample_n": 15000
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/SVM_mendeley_20260624_172053.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/SVM_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/SVM_mendeley.png"
+  }
+}

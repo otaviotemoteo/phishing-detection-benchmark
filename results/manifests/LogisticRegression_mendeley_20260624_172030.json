@@ -1,0 +1,60 @@
+{
+  "experiment_id": "LogisticRegression_mendeley_20260624_172030",
+  "timestamp": "2026-06-24T17:20:53.550885-03:00",
+  "model": "LogisticRegression",
+  "dataset": "mendeley",
+  "dataset_hash": "e4461460c92dfc2ccd9cd63d9c0650ba321a6829fbde7551f5fd9fbc9bf64a27",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "C": 10.0,
+    "class_weight": null,
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": null,
+    "max_iter": 1000,
+    "multi_class": "deprecated",
+    "n_jobs": null,
+    "penalty": "l2",
+    "random_state": 42,
+    "solver": "liblinear",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false,
+    "_best_params": {
+      "solver": "liblinear",
+      "penalty": "l2",
+      "C": 10.0
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.8000833333333334,
+    "precision": 0.7152222905142389,
+    "recall": 0.7757777777777778,
+    "f1": 0.7442703336531287,
+    "auc_roc": 0.8811177037037037,
+    "cv_f1": 0.7463
+  },
+  "cost": {
+    "training_time_s": 21.0804,
+    "inference_time_ms_per_sample": 0.001355,
+    "peak_ram_mb": 1013.1,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/LogisticRegression_mendeley_20260624_172030.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/LogisticRegression_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/LogisticRegression_mendeley.png"
+  }
+}

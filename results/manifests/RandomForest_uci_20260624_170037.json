@@ -1,0 +1,65 @@
+{
+  "experiment_id": "RandomForest_uci_20260624_170037",
+  "timestamp": "2026-06-24T17:01:38.114563-03:00",
+  "model": "RandomForest",
+  "dataset": "uci",
+  "dataset_hash": "685e9fbdbe08c8b23fdb82e06cf5e154a8516e93f7b07f8a67328f17f86d0d72",
+  "git_commit": "785ffd8",
+  "seed": 42,
+  "hyperparameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": "log2",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 400,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false,
+    "_best_params": {
+      "n_estimators": 400,
+      "max_features": "log2",
+      "max_depth": null
+    }
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.9710669077757685,
+    "precision": 0.9699042407660738,
+    "recall": 0.964625850340136,
+    "f1": 0.9672578444747613,
+    "auc_roc": 0.9968253968253968,
+    "cv_f1": 0.9638
+  },
+  "cost": {
+    "training_time_s": 58.3852,
+    "inference_time_ms_per_sample": 0.066113,
+    "peak_ram_mb": 681.4,
+    "gpu_used": false,
+    "n_parameters": null
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/RandomForest_uci_20260624_170037.joblib",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/RandomForest_uci.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/RandomForest_uci.png",
+    "feature_importance": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/plots/feature_importance/RandomForest_uci.png"
+  }
+}
