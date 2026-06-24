@@ -90,3 +90,61 @@ Use MLflow 2.16.2 as the experiment tracking tool, running the local backend (`.
 - MLflow documentation: https://mlflow.org/
 
 ---
+
+## D-003: Mendeley dataset selection — n96ncsr5g4/1 (URL + label)
+
+**Date:** 2026-06-23
+**Status:** Accepted
+**Phase:** 1
+
+### Context
+
+The Planejamento (source of truth) specifies the Mendeley dataset `n96ncsr5g4/1`,
+required because the experimental design (§7.1) fine-tunes DistilBERT on text
+content. The committed `data/README.md` previously referenced `c2gw7fy2j4`
+(58,645 samples, ~100 pre-extracted numeric features), which is incorrect: it
+cannot supply raw text for the Transformer layer and mismatches the Planejamento.
+
+Phase 1 EDA (`notebooks/01_eda.ipynb`) downloaded `n96ncsr5g4/1` and confirmed its
+actual schema directly from the source, resolving the discrepancy.
+
+### Decision
+
+Adopt Mendeley **`n96ncsr5g4/1`** ("Phishing Websites Dataset", DOI
+10.17632/n96ncsr5g4.1). Confirmed schema:
+
+- **80,000 instances**, labelled `result` = 0 (legitimate, 50,000) / 1 (phishing,
+  30,000) — ~37.5% phishing.
+- The published download is a single `index.sql` (~10 MB) with columns
+  `rec_id, url, website, result, created_date`, ingested to
+  `data/mendeley_phishing.csv` by `scripts/convert_datasets.py`.
+- `website` is the *filename* of the captured HTML page (e.g.
+  `1635698138155948.html`). **The HTML page content is NOT part of the public
+  download** — only the URL index ships.
+
+### Alternatives considered
+
+- `c2gw7fy2j4` (58,645 samples, ~100 extracted features): rejected — lacks raw
+  text for the Transformer layer; mismatches the Planejamento.
+
+### Consequences
+
+**Positive:**
+- Provides 80k raw URLs + labels, directly usable for URL feature engineering
+  (Layer 1), character-level CNN/LSTM (Layer 2), and DistilBERT on URL text
+  (Layer 3). Sample count and label semantics match the Planejamento.
+
+**Negative / caveats:**
+- HTML *content* is unavailable, so HTML-body modelling is out of scope unless the
+  pages are separately crawled (not planned). DistilBERT therefore consumes the
+  **URL string as text**, consistent with DEVELOPMENT.md §4.4 (raw URL via embedding).
+- `data/README.md` was corrected to reflect the real dataset (was 58,645 / `c2gw7fy2j4`).
+
+### References
+
+- Planejamento §3, §7.1; DEVELOPMENT.md §4.4
+- Source: https://data.mendeley.com/datasets/n96ncsr5g4/1 (DOI 10.17632/n96ncsr5g4.1)
+- Schema confirmed in `notebooks/01_eda.ipynb` §2; ingestion in
+  `scripts/convert_datasets.py`; hashes in `data/dataset_hashes.json`.
+
+---
