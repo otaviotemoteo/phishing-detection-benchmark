@@ -42,11 +42,12 @@ echo "[Phase 1] Running EDA notebook..."
 jupyter nbconvert --execute notebooks/01_eda.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
-# Phase 2 — Preprocessing + minimal pipeline (TODO)
+# Phase 2 — Preprocessing + minimal pipeline
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 2] Preprocessing..."
-# jupyter nbconvert --execute notebooks/02_preprocessing.ipynb --to notebook --inplace
+echo ""
+echo "[Phase 2] Preprocessing + minimal pipeline..."
+jupyter nbconvert --execute notebooks/02_preprocessing.ipynb --to notebook --inplace
+jupyter nbconvert --execute notebooks/03_ml_classical.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
 # Phase 3 — Classical ML (TODO)
