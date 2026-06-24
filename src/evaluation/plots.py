@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, confusion_matrix
 
 from src.config import PLOT_DPI
@@ -35,6 +36,40 @@ def save_confusion_matrix(y_true, y_pred, path) -> Path:
         ax=ax, cmap="Blues", colorbar=False
     )
     ax.set_title("Confusion matrix")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=PLOT_DPI, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
+def save_feature_importance(estimator, feature_names, path, top_n: int = 15):
+    """Save a top-N feature-importance bar chart for tree-based models.
+
+    Args:
+        estimator: A fitted estimator; must expose ``feature_importances_`` or
+            this is a no-op.
+        feature_names: Column names aligned with the importance vector.
+        path: Destination PNG path.
+        top_n: Number of top features to show.
+
+    Returns:
+        The path written, or ``None`` if the estimator has no importances.
+    """
+    importances = getattr(estimator, "feature_importances_", None)
+    if importances is None:
+        return None
+
+    top = (
+        pd.Series(importances, index=feature_names)
+        .sort_values(ascending=False)
+        .head(top_n)
+        .sort_values()
+    )
+    fig, ax = plt.subplots(figsize=(7, 6))
+    ax.barh(top.index, top.values, color="#2a9d8f")
+    ax.set_title(f"Top {top_n} feature importances")
+    ax.set_xlabel("importance")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=PLOT_DPI, bbox_inches="tight")
