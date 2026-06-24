@@ -1,0 +1,2 @@
+model,dataset,accuracy,precision,recall,f1,auc_roc,train_time_s,inference_time_ms_per_sample
+LogisticRegression,uci,0.9361,0.9314,0.9238,0.9276,0.9809,0.0359,0.001105
