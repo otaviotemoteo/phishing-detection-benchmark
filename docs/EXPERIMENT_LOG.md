@@ -12,6 +12,92 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-24 — ISCX-URL2016 integrated
+
+### What I did
+
+Integrated ISCX-URL2016 (downloaded manually via the UNB CIC form). Relocated it into
+`data/`, refreshed hashes, profiled it in `01_eda.ipynb`, and recorded the schema
+finding (**D-005**).
+
+### Results
+
+- `data/iscx_url2016.csv`: 36,707 × 80 — **79 lexical URL features** + a 5-class
+  `URL_Type_obf_Type` label (benign / phishing / Defacement / malware / spam;
+  phishing ~20.7%). ~26% duplicate rows; NaNs in 9 columns.
+- All three datasets now hashed; `available_datasets()` == `[uci, mendeley, iscx]`.
+- `01_eda.ipynb` §3 now profiles ISCX (multi-class distribution plot saved); 0 errors.
+- **D-005** recorded: this is the *feature export*, not raw URLs; its 79-feature space
+  ≠ UCI's 30, so the §10 cross-dataset plan needs a shared URL-feature representation
+  (raw URLs + our own feature engineering), to be finalized at Phase 6.
+
+### What worked
+
+- The file arrived as a plain CSV → `load_raw("iscx")` works with no converter.
+
+### What didn't
+
+- It is the lexical-FEATURE version, not the raw URLs the Planejamento assumed — so
+  UCI(30-feat)→ISCX(79-feat) transfer is not directly possible (surfaced as D-005).
+- The file initially landed at the repo root (would have been committed); moved into
+  `data/` (gitignored).
+
+### Next
+
+- Unchanged: Phase 3 (classical ML line-up + URL feature engineering). That URL-feature
+  work also unblocks the preferred D-005 cross-dataset approach.
+- Before Phase 6: obtain the ISCX **raw URL lists** (a second download) if pursuing the
+  preferred D-005 option.
+
+---
+
+## 2026-06-23 — Phase 2 (minimal pipeline)
+
+### What I did
+
+Built the end-to-end minimal pipeline (Phase 2): preprocessing, metrics, cost
+tracking, plots, manifests, and a single `train_and_evaluate` orchestrator, then ran
+Logistic Regression on UCI through it via notebooks `02_preprocessing` + `03_ml_classical`.
+
+### Results
+
+- New modules: `src/data/preprocessing.py` (`to_xy` label-normalization per **D-004**,
+  stratified 70/15/15 `split_data`, `apply_smote` on train, `StandardScaler`),
+  `src/evaluation/{metrics,cost,plots}.py`, `src/utils/manifests.py`,
+  `src/experiments/runner.py` (`train_and_evaluate`), plus `io.append_metrics_row`.
+- **LogisticRegression on UCI:** accuracy 0.936, precision 0.931, recall 0.924,
+  F1 0.928, AUC 0.981 — consistent with literature LR baselines (~0.92–0.93).
+- One call produced: a `metrics_ml.csv` row, a JSON manifest (dataset_hash matches the
+  registry, git commit, seed, library versions, full cost block), confusion matrix + ROC
+  at 300 DPI, and a model+scaler `.joblib`. An MLflow run was logged to `./mlruns`.
+- Both notebooks execute top-to-bottom with 0 errors; re-runs give identical seeded metrics.
+- **D-004** recorded (positive class = phishing = 1; UCI `Result` remapped).
+
+### What worked
+
+- Smoke-testing `train_and_evaluate` as a plain function before wrapping it in notebooks —
+  the one-line model swap (§1.2) holds.
+- Scaling-before-SMOTE keeps the synthetic-sample k-NN on comparable scales; the
+  leakage assertions (disjoint splits, train-only scaler/SMOTE) all pass.
+
+### What didn't
+
+- `metrics_ml.csv` uses append semantics, so re-running `03` adds duplicate UCI rows; a
+  one-row-per-(model, dataset) dedupe is deferred to Phase 3 when the table fills to 18 rows.
+- `LogisticRegression`'s `multi_class` shows a sklearn deprecation marker in `get_params` —
+  harmless, recorded verbatim in the manifest.
+
+### Next
+
+- **Phase 3:** implement the 6-model factory in `src/models/classical.py` (DT, RF, XGBoost,
+  CatBoost, LogReg, SVM), add GridSearch/RandomizedSearch tuning on the reserved validation
+  split, generate feature-importance plots, and fill `metrics_ml.csv` to 18 rows.
+- Build `src/data/feature_engineering.py` (URL features) so Mendeley/ISCX work for classical
+  ML — `to_xy` currently raises `NotImplementedError` for them.
+- ISCX still pending manual download (parallel errand).
+
+---
+
 ## 2026-06-23 — Phase 1 (EDA)
 
 ### What I did
