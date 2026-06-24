@@ -1,0 +1,14 @@
+{
+  "mendeley_phishing.csv": {
+    "bytes": 9153516,
+    "modified": "2026-06-23T16:53:10.991256+00:00",
+    "name": "mendeley",
+    "sha256": "e4461460c92dfc2ccd9cd63d9c0650ba321a6829fbde7551f5fd9fbc9bf64a27"
+  },
+  "uci_phishing.csv": {
+    "bytes": 789147,
+    "modified": "2026-06-23T16:53:01.829414+00:00",
+    "name": "uci",
+    "sha256": "685e9fbdbe08c8b23fdb82e06cf5e154a8516e93f7b07f8a67328f17f86d0d72"
+  }
+}
