@@ -148,3 +148,103 @@ Adopt Mendeley **`n96ncsr5g4/1`** ("Phishing Websites Dataset", DOI
   `scripts/convert_datasets.py`; hashes in `data/dataset_hashes.json`.
 
 ---
+
+## D-004: Positive class = phishing (label 1); normalize all dataset labels to {0,1}
+
+**Date:** 2026-06-23
+**Status:** Accepted
+**Phase:** 2
+
+### Context
+
+Metrics must be comparable across datasets, but the raw label encodings differ:
+UCI uses `Result` ∈ {1 = legitimate, -1 = phishing}, while Mendeley uses
+{0 = legitimate, 1 = phishing}. Precision, recall, and F1 are asymmetric — they
+depend on which class is "positive" — so a single, explicit convention is required
+before any model is trained. DEVELOPMENT.md §8.3 also argues that false negatives
+(missed phishing) are the costlier error, so **recall of the phishing class** is a
+headline metric and must be unambiguous.
+
+### Decision
+
+Normalize every dataset's label to **{0 = legitimate, 1 = phishing}** and treat
+**phishing (1) as the positive class** in all metric computations
+(`pos_label=1`). UCI is remapped `-1 → 1` and `1 → 0` in
+`src.data.preprocessing.to_xy`; Mendeley already matches. With this convention,
+*recall* = fraction of phishing correctly caught and *precision* = fraction of
+phishing alarms that were real.
+
+### Alternatives considered
+
+- Keep each dataset's native encoding: rejected — metrics would silently mean
+  different things per dataset, breaking comparability.
+- Positive class = legitimate: rejected — inverts recall away from the
+  attack-detection framing the dissertation emphasizes (§8.3).
+
+### Consequences
+
+- All `metrics_ml.csv` / manifest precision/recall/F1 values describe the phishing
+  class consistently across datasets and model families.
+- `to_xy` is the single point where label semantics are fixed; any new dataset
+  must map into this convention there.
+
+### References
+
+- DEVELOPMENT.md §8.1–§8.3 (metric definitions, FN cost)
+- `src/data/preprocessing.py` (`to_xy`), `src/evaluation/metrics.py`
+
+---
+
+## D-005: ISCX-URL2016 is the lexical-feature export (not raw URLs) — cross-dataset impact
+
+**Date:** 2026-06-24
+**Status:** Proposed
+**Phase:** 1 (finding) / 6 (decision to finalize)
+
+### Context
+
+ISCX-URL2016 was obtained via the UNB CIC registration form. The export in hand is
+the **lexical-feature** version: 36,707 rows × **79 numeric URL features** plus a
+5-class label `URL_Type_obf_Type` (benign 7,781 / phishing 7,586 / Defacement 7,930
+/ malware 6,712 / spam 6,698). It also carries ~26% duplicate rows and NaNs in 9
+columns.
+
+The Planejamento (§3, §10) described ISCX as "classified raw URLs" and the
+cross-dataset generalization test trains RF/XGBoost on **UCI (30 features)** and
+tests on **ISCX**. But ISCX's 79 lexical features are a *different feature space*
+from UCI's 30 structured features, so a model fit on UCI cannot be applied to ISCX
+directly. Confirmed in `notebooks/01_eda.ipynb` §3.
+
+### Decision
+
+(Proposed — finalize at Phase 6.) Do **not** attempt UCI→ISCX in raw feature space.
+Preferred approach: obtain the ISCX **raw URL lists** and apply the project's own
+shared URL feature engineering (`src/data/feature_engineering.py`, Phase 3/4) to
+**both** Mendeley and ISCX, producing a common representation in which cross-dataset
+transfer is meaningful. For any within-ISCX use, binarize as **phishing vs benign**
+(dropping Defacement/malware/spam) to match the phishing-vs-legitimate framing
+(D-004); NaNs handled by median impute at preprocessing.
+
+### Alternatives considered
+
+- Train/test across mismatched feature spaces (UCI 30 ↔ ISCX 79): rejected —
+  not well-defined; would produce meaningless transfer results.
+- Use ISCX's 79 lexical features as the shared schema and re-extract them for UCI/
+  Mendeley: rejected for now — re-implementing ISCX's exact feature extractor is
+  brittle; our own URL feature set (§4.4) is simpler and already planned.
+- Keep this feature export and use ISCX within-dataset only (no cross-dataset):
+  fallback if raw URL lists prove hard to obtain.
+
+### Consequences
+
+- The §10 cross-dataset experiment depends on a shared URL-feature representation
+  built in Phase 3/4, not on this feature CSV.
+- This export remains usable for a within-ISCX phishing-vs-benign benchmark.
+- May require a second ISCX download (raw URL lists) before Phase 6.
+
+### References
+
+- Planejamento §3, §10; DEVELOPMENT.md §4.4 (URL feature engineering)
+- Schema confirmed in `notebooks/01_eda.ipynb` §3; hash in `data/dataset_hashes.json`
+
+---
