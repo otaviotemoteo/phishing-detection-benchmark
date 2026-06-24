@@ -6,9 +6,18 @@ This directory holds the three datasets used in the experiments. **Raw CSV files
 
 | Dataset | Samples | Features | Source |
 |---|---|---|---|
-| UCI Phishing Websites | 11,055 | 30 | https://archive.ics.uci.edu/ml/datasets/phishing+websites |
-| Mendeley Phishing Dataset | 58,645 | ~100 | https://data.mendeley.com/datasets/c2gw7fy2j4/3 |
-| ISCX-URL2016 | ~36,000 | URL string | https://www.unb.ca/cic/datasets/url-2016.html |
+| UCI Phishing Websites | 11,055 | 30 structured (±1) | https://archive.ics.uci.edu/dataset/327/phishing+websites |
+| Mendeley Phishing Websites Dataset | 80,000 | raw URL (+ HTML filename) | https://data.mendeley.com/datasets/n96ncsr5g4/1 |
+| ISCX-URL2016 | ~36,000 | classified raw URLs | https://www.unb.ca/cic/datasets/url-2016.html |
+
+> **Mendeley note (see D-003):** the published download is a single `index.sql`
+> with columns `rec_id, url, website, result, created_date` (80,000 rows; `result`
+> 0 = legitimate / 1 = phishing). `website` is the captured page's *filename* —
+> the HTML *content* is not distributed. `scripts/convert_datasets.py` converts the
+> SQL dump to `mendeley_phishing.csv`.
+>
+> **ISCX note:** UNB CIC distributes ISCX-URL2016 behind a registration form, so it
+> is **not** auto-downloaded — `scripts/download_datasets.sh` prints manual steps.
 
 ## Expected filenames after download
 
@@ -25,8 +34,10 @@ data/
 After downloading, compute and save SHA-256 hashes:
 
 ```bash
-python -m src.utils.io  # (to be implemented — generates data/dataset_hashes.json)
+python -m src.utils.io  # generates data/dataset_hashes.json
 ```
+
+This runs automatically at the end of `scripts/download_datasets.sh`.
 
 These hashes are recorded in every experiment manifest to guarantee that results are tied to the exact dataset version used.
 
