@@ -12,6 +12,28 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-25 — Phase 5 skipped (D-009)
+
+### What I did
+
+Decided to **skip Phase 5** (DistilBERT fine-tuning) and documented the justification
+in **D-009** — the phase's own exit criterion explicitly allows this.
+
+### Results
+
+- Rationale: optional and not in the required SI texts; URLs-only (no HTML, D-003)
+  poorly suits DistilBERT vs. the strong char-level baseline (LSTM F1 0.937); 3 GB VRAM
+  makes it the most resource-risky phase; Phases 6–7 are higher value.
+- `metrics_transformers.csv` intentionally left empty.
+
+### Next
+
+- Phase 6 — cross-dataset generalization. **Blocked on data:** a valid train-on-A/
+  test-on-B test needs two datasets sharing a feature representation, which requires
+  raw ISCX URLs (D-005) — currently only Mendeley has raw URLs.
+
+---
+
 ## 2026-06-25 — Phase 4 (Deep Learning)
 
 ### What I did

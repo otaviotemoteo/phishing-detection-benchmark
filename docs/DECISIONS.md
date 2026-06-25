@@ -383,3 +383,52 @@ classical layer) cannot synthesize meaningful character sequences.
 - `src/experiments/runner_deep.py`, `src/models/deep.py`
 
 ---
+
+## D-009: Skip Phase 5 (DistilBERT fine-tuning) — documented justification
+
+**Date:** 2026-06-25
+**Status:** Accepted
+**Phase:** 5
+
+### Context
+
+Phase 5 (DistilBERT fine-tuning) is marked **optional/advanced** in both the
+Planejamento (§7) and DEVELOPMENT.md §4. Its exit criterion explicitly permits
+*"a documented justification of why fine-tuning was not feasible and which
+alternative was adopted"* in lieu of running it. It is also **not part of the
+required Scientific Initiation written texts** — only the implementation roadmap.
+
+### Decision
+
+Skip DistilBERT fine-tuning. Rationale:
+
+1. **Optional and not in the required texts** — pure enrichment, not needed for the SI.
+2. **URLs only, no HTML** (D-003). DistilBERT's strength is natural-language context,
+   and its English word-piece tokenizer fragments URL strings awkwardly. On short
+   URLs the Phase 4 char-level models already do very well (LSTM F1 **0.937** on
+   Mendeley), so the marginal gain from a transformer is uncertain — it might not beat
+   the LSTM.
+3. **Hardware.** The GTX 1060 (2.9 GB) makes transformer fine-tuning the most
+   resource-intensive and OOM-prone phase (the plan even carries a VPS contingency).
+4. **Higher-value work remains.** Phase 6 (cross-dataset generalization) and Phase 7
+   (final comparison figures) contribute more to the dissertation.
+
+### Alternatives considered
+
+- **Partial / pre-trained DistilBERT** (capped fine-tune): still URLs-only; modest
+  expected value for the setup effort.
+- **Full fine-tuning:** highest cost and risk for an uncertain win — rejected.
+
+### Consequences
+
+- The model-family comparison is **Classical vs Deep Learning** (two families, not
+  three); `metrics_transformers.csv` stays empty.
+- Revisitable (supersede this ADR) if full HTML or raw ISCX URLs are obtained and a
+  transformer becomes worthwhile.
+
+### References
+
+- D-003 (Mendeley is URL-only); Phase 4 results (`metrics_dl.csv`)
+- Planejamento §7; DEVELOPMENT.md §4 (Phase 5 exit criterion)
+
+---
