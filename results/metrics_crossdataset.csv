@@ -1,0 +1,13 @@
+model,train_dataset,test_dataset,accuracy,precision,recall,f1,auc_roc,train_time_s,inference_time_ms_per_sample
+RandomForest,mendeley,mendeley,0.8801,0.8411,0.8387,0.8399,0.9501,692.6162,0.045273
+RandomForest,mendeley,malicious_urls,0.6109,0.2226,0.465,0.3011,0.6032,692.6162,0.056287
+RandomForest,malicious_urls,malicious_urls,0.9065,0.7127,0.8056,0.7563,0.9497,1572.0934,0.046123
+RandomForest,malicious_urls,mendeley,0.5798,0.4322,0.3841,0.4067,0.5901,1572.0934,0.140164
+XGBoost,mendeley,mendeley,0.8849,0.852,0.8389,0.8454,0.9531,167.7771,0.005733
+XGBoost,mendeley,malicious_urls,0.6259,0.2361,0.4812,0.3168,0.6234,167.7771,0.005958
+XGBoost,malicious_urls,malicious_urls,0.9105,0.7421,0.7713,0.7564,0.9459,198.5635,0.006833
+XGBoost,malicious_urls,mendeley,0.6017,0.4591,0.3486,0.3963,0.6155,198.5635,0.005478
+CNN-LSTM,mendeley,mendeley,0.9537,0.9392,0.9371,0.9382,0.9905,83.5824,0.031307
+CNN-LSTM,mendeley,malicious_urls,0.7299,0.3156,0.4266,0.3628,0.6423,83.5824,0.026096
+CNN-LSTM,malicious_urls,malicious_urls,0.9061,0.6767,0.917,0.7787,0.9714,148.0261,0.030256
+CNN-LSTM,malicious_urls,mendeley,0.4853,0.3999,0.7442,0.5202,0.4534,148.0261,0.029604
