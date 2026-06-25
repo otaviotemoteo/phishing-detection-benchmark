@@ -66,18 +66,18 @@ python -m src.experiments.run_deep --all
 jupyter nbconvert --execute notebooks/04_deep_learning.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
-# Phase 5 — Transformers (TODO)
+# Phase 5 — Transformers (SKIPPED — see D-009)
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 5] Transformer fine-tuning..."
-# jupyter nbconvert --execute notebooks/05_transformers.ipynb --to notebook --inplace
+# DistilBERT fine-tuning was deliberately skipped (optional/advanced, URLs-only,
+# 3 GB VRAM). Justification documented in docs/DECISIONS.md (D-009).
 
 # -----------------------------------------------------------------------------
-# Phase 6 — Cross-dataset (TODO)
+# Phase 6 — Cross-dataset generalization
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 6] Cross-dataset generalization..."
-# (TODO)
+echo ""
+echo "[Phase 6] Cross-dataset generalization (Mendeley <-> malicious_urls)..."
+python -m src.experiments.run_cross --all
+jupyter nbconvert --execute notebooks/05_crossdataset.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
 # Phase 7 — Final visualizations (TODO)
