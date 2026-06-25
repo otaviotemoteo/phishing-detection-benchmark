@@ -29,6 +29,7 @@ DATASET_FILENAMES: dict[str, str] = {
     "uci": "uci_phishing.csv",
     "mendeley": "mendeley_phishing.csv",
     "iscx": "iscx_url2016.csv",
+    "malicious_urls": "malicious_urls.csv",  # raw URLs (Kaggle, ISCX-derived) — cross-dataset
 }
 
 HASHES_PATH: Path = DATA_DIR / "dataset_hashes.json"
