@@ -1,0 +1,45 @@
+{
+  "experiment_id": "CNN-LSTM_mendeley_to_malicious_urls_20260625_163719",
+  "timestamp": "2026-06-25T16:39:13.179001-03:00",
+  "model": "CNN-LSTM",
+  "dataset": "mendeley->malicious_urls",
+  "dataset_hash": null,
+  "git_commit": "2856e28",
+  "seed": 42,
+  "hyperparameters": {
+    "architecture": "CNN-LSTM",
+    "vocab_size": 90,
+    "max_url_length": 200
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.7299172369947953,
+    "precision": 0.31555573023109573,
+    "recall": 0.4265707515593289,
+    "f1": 0.3627598483718955,
+    "auc_roc": 0.642340768208991
+  },
+  "cost": {
+    "training_time_s": 83.5824,
+    "peak_ram_mb": 2581.0,
+    "gpu_used": true,
+    "gpu_mem_mb": 678.8,
+    "n_parameters": 65025,
+    "epochs_trained": 13,
+    "train_n": 56000,
+    "inference_time_ms_per_sample": 0.026096
+  },
+  "artifacts": {
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/CNN-LSTM_mendeley_to_malicious_urls.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/CNN-LSTM_mendeley_to_malicious_urls.png",
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/CNN-LSTM_mendeley_to_malicious_urls_20260625_163719.pt"
+  }
+}

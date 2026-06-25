@@ -1,0 +1,44 @@
+{
+  "experiment_id": "CNN-LSTM_mendeley_to_mendeley_20260625_163719",
+  "timestamp": "2026-06-25T16:38:53.597736-03:00",
+  "model": "CNN-LSTM",
+  "dataset": "mendeley->mendeley",
+  "dataset_hash": null,
+  "git_commit": "2856e28",
+  "seed": 42,
+  "hyperparameters": {
+    "architecture": "CNN-LSTM",
+    "vocab_size": 90,
+    "max_url_length": 200
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.9536666666666667,
+    "precision": 0.9391982182628063,
+    "recall": 0.9371111111111111,
+    "f1": 0.9381535038932147,
+    "auc_roc": 0.9904901333333334
+  },
+  "cost": {
+    "training_time_s": 83.5824,
+    "peak_ram_mb": 2581.0,
+    "gpu_used": true,
+    "gpu_mem_mb": 678.8,
+    "n_parameters": 65025,
+    "epochs_trained": 13,
+    "train_n": 56000,
+    "inference_time_ms_per_sample": 0.031307
+  },
+  "artifacts": {
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/CNN-LSTM_mendeley_to_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/CNN-LSTM_mendeley_to_mendeley.png"
+  }
+}

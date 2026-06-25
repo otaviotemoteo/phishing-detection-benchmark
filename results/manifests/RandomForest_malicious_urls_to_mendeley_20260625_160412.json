@@ -1,0 +1,59 @@
+{
+  "experiment_id": "RandomForest_malicious_urls_to_mendeley_20260625_160412",
+  "timestamp": "2026-06-25T16:30:42.140597-03:00",
+  "model": "RandomForest",
+  "dataset": "malicious_urls->mendeley",
+  "dataset_hash": null,
+  "git_commit": "2856e28",
+  "seed": 42,
+  "hyperparameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "gini",
+    "max_depth": 20,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.5798,
+    "precision": 0.43218304576144034,
+    "recall": 0.38406666666666667,
+    "f1": 0.40670667137310273,
+    "auc_roc": 0.590052582
+  },
+  "cost": {
+    "training_time_s": 1572.0934,
+    "inference_time_ms_per_sample": 0.140164,
+    "peak_ram_mb": 1241.5,
+    "gpu_used": false,
+    "n_parameters": null,
+    "train_n": 80000
+  },
+  "artifacts": {
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/RandomForest_malicious_urls_to_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/RandomForest_malicious_urls_to_mendeley.png",
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/RandomForest_malicious_urls_to_mendeley_20260625_160412.joblib"
+  }
+}
