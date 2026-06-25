@@ -111,6 +111,35 @@ def _measure_inference(model, X: np.ndarray, n_warmup: int = 3, n_max: int = 100
     return ((time.perf_counter() - start) / n) * 1000.0
 
 
+def _train_loop(model, train_loader, val_loader, criterion, optimizer, scaler, tracker=None):
+    """Train with early stopping on val loss; restore the best weights.
+
+    Returns:
+        ``(history, epochs_trained)`` where history has ``train_loss``/``val_loss`` lists.
+    """
+    history = {"train_loss": [], "val_loss": []}
+    best_val, best_state, patience, epochs_trained = float("inf"), None, 0, 0
+    for epoch in range(1, DL_MAX_EPOCHS + 1):
+        tr_loss = _run_epoch(model, train_loader, criterion, optimizer, scaler)
+        val_loss = _run_epoch(model, val_loader, criterion)
+        history["train_loss"].append(round(tr_loss, 5))
+        history["val_loss"].append(round(val_loss, 5))
+        if tracker is not None:
+            tracker.update_ram()
+        epochs_trained = epoch
+        if val_loss < best_val - 1e-4:
+            best_val = val_loss
+            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+            patience = 0
+        else:
+            patience += 1
+            if patience >= EARLY_STOPPING_PATIENCE:
+                break
+    if best_state is not None:
+        model.load_state_dict(best_state)
+    return history, epochs_trained
+
+
 def train_and_evaluate_deep(
     model_key: str,
     dataset: str = "mendeley",
@@ -162,27 +191,10 @@ def train_and_evaluate_deep(
     optimizer = torch.optim.Adam(model.parameters(), lr=DL_LEARNING_RATE)
     scaler = torch.amp.GradScaler("cuda") if _USE_AMP else None
 
-    history = {"train_loss": [], "val_loss": []}
-    best_val, best_state, patience, epochs_trained = float("inf"), None, 0, 0
-
     with CostTracker() as tracker:
-        for epoch in range(1, DL_MAX_EPOCHS + 1):
-            tr_loss = _run_epoch(model, train_loader, criterion, optimizer, scaler)
-            val_loss = _run_epoch(model, val_loader, criterion)
-            history["train_loss"].append(round(tr_loss, 5))
-            history["val_loss"].append(round(val_loss, 5))
-            tracker.update_ram()
-            epochs_trained = epoch
-            if val_loss < best_val - 1e-4:
-                best_val = val_loss
-                best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
-                patience = 0
-            else:
-                patience += 1
-                if patience >= EARLY_STOPPING_PATIENCE:
-                    break
-    if best_state is not None:
-        model.load_state_dict(best_state)
+        history, epochs_trained = _train_loop(
+            model, train_loader, val_loader, criterion, optimizer, scaler, tracker
+        )
 
     gpu_mb = gpu_used_mb()
 
