@@ -12,6 +12,53 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-25 — Phase 6 (cross-dataset generalization)
+
+### What I did
+
+Built the cross-dataset layer: ingested a **second raw-URL dataset** (Kaggle "Malicious
+URLs", ISCX-derived), wrote a cross-dataset runner with URL normalization + within/cross
+dual recording, and ran RF / XGBoost / CNN-LSTM **both directions** (Mendeley ↔ malicious_urls).
+
+### Results
+
+- New code: malicious-URL converter → `data/malicious_urls.csv` (522,214 phishing+benign URLs;
+  registered as `malicious_urls`); `runner_cross.py` (`cross_classical` + `cross_deep`, reusing the
+  classical pipeline + DL training loop), `run_cross.py`, notebook 05. Extracted `_train_loop` from
+  `runner_deep` for reuse. **D-010** recorded.
+- **Discovered + controlled a URL-formatting artifact:** Mendeley URLs carry the scheme ~100% of the
+  time, the Kaggle set ~11.5%. Naive transfer collapsed to near-random (DT AUC 0.545) for *formatting*
+  reasons → fixed by stripping the scheme before features/tokenization (D-010).
+- **Headline (normalized): every model collapses cross-dataset.** Within-dataset F1 0.76–0.94 →
+  cross-dataset F1 0.30–0.52; cross AUC ~0.45–0.64 (≈ random). F1 drops 0.26–0.58 for RF/XGBoost/CNN-LSTM
+  in both directions.
+- The char-level **CNN-LSTM** (best within-dataset, 0.938 on Mendeley) generalizes **no better** than
+  the lexical models → high within-dataset scores are largely **dataset memorization**, not transferable
+  phishing knowledge (Planejamento §10's "valid and important result").
+- 12 metrics rows (within + cross), 24 confusion/ROC, 12 manifests; notebook 05 runs 0 errors.
+  6/6 experiments in 49.6 min.
+
+### What worked
+
+- Smoke-testing on DecisionTree first surfaced the formatting artifact *before* the full run.
+- Reusing the Phase 3 pipeline + Phase 4 `_train_loop` kept `runner_cross` small — only the
+  train-A/test-B orchestration + URL normalization is new.
+- A normalized within baseline recorded alongside each cross run gives an apples-to-apples drop.
+
+### What didn't
+
+- Literal ISCX raw URLs aren't distributed by CIC (feature-only, D-005); used the Kaggle
+  ISCX-derived "Malicious URLs" set instead (documented in D-010).
+- CNN-LSTM malicious→mendeley cross AUC 0.453 (<0.5) — ranking slightly inverts under severe domain shift.
+
+### Next
+
+- Phase 7 — final comparison figures (`06_comparisons.ipynb`): aggregate `metrics_ml`/`metrics_dl`/
+  `metrics_crossdataset` into the publication charts (metric bars, ROC overlays, F1 heatmap,
+  training-time-vs-F1, feature importance). The final phase.
+
+---
+
 ## 2026-06-25 — Phase 5 skipped (D-009)
 
 ### What I did
