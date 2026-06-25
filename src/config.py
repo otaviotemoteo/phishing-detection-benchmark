@@ -36,6 +36,7 @@ CV_FOLDS: int = 5
 RANDOMIZED_SEARCH_N_ITER: int = 20  # candidates sampled per RandomizedSearchCV
 SEARCH_SCORING: str = "f1"  # phishing is the positive class (D-004)
 SVM_MAX_TRAIN_SAMPLES: int = 15_000  # stratified cap for SVM on large datasets (D-006)
+CROSS_MAX_TRAIN_SAMPLES: int = 80_000  # stratified train cap for cross-dataset runs (D-010)
 
 # =============================================================================
 # Feature engineering (URLs)
