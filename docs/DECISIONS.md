@@ -432,3 +432,63 @@ Skip DistilBERT fine-tuning. Rationale:
 - Planejamento §7; DEVELOPMENT.md §4 (Phase 5 exit criterion)
 
 ---
+
+## D-010: Cross-dataset protocol — second dataset, URL normalization, within/cross design
+
+**Date:** 2026-06-25
+**Status:** Accepted
+**Phase:** 6
+
+### Context
+
+Cross-dataset generalization (train A, test B) requires A and B to share a feature
+representation. Only raw-URL datasets can share *our* representation, so UCI (30
+discretized features) and the ISCX feature export (D-005) are excluded. We need a
+**second raw-URL dataset** alongside Mendeley.
+
+The literal ISCX raw URLs are not in the CIC distribution (feature-only, D-005), so
+we use the Kaggle **"Malicious URLs" dataset** (sid321axn; 651k URLs; ISCX-*derived*
+among other sources) as `malicious_urls` — the phishing+benign subset (522,214 rows).
+It is not literally ISCX but serves the purpose: an independent raw-URL phishing corpus.
+
+**URL-formatting artifact discovered:** Mendeley URLs include the scheme
+(`http(s)://`) ~100% of the time; the Kaggle set ~11.5%. Lexical features
+(`has_https`, `url_length`, `path_depth`) therefore mean different things across the
+two datasets, so *naive* cross-dataset transfer collapses to near-random (DecisionTree
+AUC 0.545) for **formatting** reasons, not phishing.
+
+### Decision
+
+1. **Datasets:** Mendeley ↔ `malicious_urls` (both raw URLs). UCI and the ISCX feature
+   export are excluded from cross-dataset.
+2. **Normalize URLs** — strip the `http(s)://` scheme before feature extraction /
+   tokenization (`_normalize_urls`), so transfer measures phishing patterns, not formatting.
+3. **Protocol:** train on A's training split (stratified-capped at
+   `CROSS_MAX_TRAIN_SAMPLES = 80k`), tuned with the same RandomizedSearchCV as Phase 3.
+   Record a **within** baseline (A → A's held-out test) *and* the **cross** result
+   (A → all of B) — both normalized, same trained model — so the F1 drop is fair.
+   Run both directions for **RF, XGBoost, CNN-LSTM**.
+4. **phishing vs benign** binary (D-006 consistency).
+
+### Alternatives considered
+
+- Literal ISCX raw URLs: unavailable from CIC (feature-only, D-005); the Kaggle set is
+  the accessible, larger, ISCX-derived substitute.
+- No normalization: rejected — measures a formatting artifact, not generalization.
+- Comparing cross to the Phase 3/4 raw-feature within numbers: rejected as unfair — the
+  in-runner normalized within baseline is the controlled comparison.
+
+### Consequences
+
+- Even after normalization a substantial drop is expected (lexical URL features are
+  dataset-specific). The drop magnitude, and the **char-level vs lexical** contrast, are
+  the findings (Planejamento §10).
+- The within baseline recorded here (normalized, capped) differs slightly from the
+  Phase 3/4 within results (raw, full) — it exists specifically for the cross comparison.
+
+### References
+
+- D-005 (ISCX schema), D-006 (phishing-vs-benign); Planejamento §10
+- `src/experiments/runner_cross.py`; scheme diagnostic in `notebooks/05_crossdataset.ipynb`
+
+---
