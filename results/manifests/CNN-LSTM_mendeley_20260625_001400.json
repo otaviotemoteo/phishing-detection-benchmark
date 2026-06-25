@@ -1,0 +1,52 @@
+{
+  "experiment_id": "CNN-LSTM_mendeley_20260625_001400",
+  "timestamp": "2026-06-25T00:15:30.765502-03:00",
+  "model": "CNN-LSTM",
+  "dataset": "mendeley",
+  "dataset_hash": "e4461460c92dfc2ccd9cd63d9c0650ba321a6829fbde7551f5fd9fbc9bf64a27",
+  "git_commit": "12147ea",
+  "seed": 42,
+  "hyperparameters": {
+    "architecture": "CNN-LSTM",
+    "vocab_size": 90,
+    "max_url_length": 200,
+    "embed_dim": 32,
+    "dropout": 0.3,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "max_epochs": 50,
+    "early_stopping_patience": 3,
+    "pos_weight": 1.6667
+  },
+  "library_versions": {
+    "python": "3.11.15",
+    "scikit-learn": "1.5.2",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "imbalanced-learn": "0.12.4",
+    "xgboost": "2.1.1",
+    "torch": "2.4.1"
+  },
+  "metrics": {
+    "accuracy": 0.94875,
+    "precision": 0.9329173166926678,
+    "recall": 0.9302222222222222,
+    "f1": 0.9315678201847113,
+    "auc_roc": 0.9875886962962962
+  },
+  "cost": {
+    "training_time_s": 87.7462,
+    "inference_time_ms_per_sample": 0.028769,
+    "peak_ram_mb": 1465.0,
+    "gpu_used": true,
+    "gpu_mem_mb": 684.4,
+    "n_parameters": 65025,
+    "epochs_trained": 13
+  },
+  "artifacts": {
+    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/CNN-LSTM_mendeley_20260625_001400.pt",
+    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/CNN-LSTM_mendeley.png",
+    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/CNN-LSTM_mendeley.png",
+    "training_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/training_curves/CNN-LSTM_mendeley.png"
+  }
+}
