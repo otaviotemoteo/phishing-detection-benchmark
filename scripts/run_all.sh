@@ -58,11 +58,12 @@ python -m src.experiments.run_classical --all
 jupyter nbconvert --execute notebooks/03_ml_classical.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
-# Phase 4 — Deep Learning (TODO)
+# Phase 4 — Deep Learning
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 4] Deep Learning benchmark..."
-# jupyter nbconvert --execute notebooks/04_deep_learning.ipynb --to notebook --inplace
+echo ""
+echo "[Phase 4] Deep Learning benchmark (CNN/LSTM/CNN-LSTM on Mendeley)..."
+python -m src.experiments.run_deep --all
+jupyter nbconvert --execute notebooks/04_deep_learning.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
 # Phase 5 — Transformers (TODO)
