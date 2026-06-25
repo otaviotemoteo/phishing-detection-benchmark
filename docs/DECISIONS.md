@@ -301,3 +301,85 @@ choices affect validity and feasibility and must be fixed once for all 18 runs.
 - `src/experiments/runner.py`, `src/models/classical.py`, `src/data/preprocessing.py`
 
 ---
+
+## D-007: Character-level DL input — truncate/pad URLs to 200, vocab from train
+
+**Date:** 2026-06-25
+**Status:** Accepted
+**Phase:** 4
+
+### Context
+
+The char-level DL models need fixed-length integer sequences. Mendeley URLs range
+13–1,641 characters (Phase 1 EDA: median 51, p95 ~136). Padding every sequence to
+the max (1,641) would make most of each input padding and waste memory on the
+3 GB GPU.
+
+### Decision
+
+Truncate/pad URLs to **`MAX_URL_LENGTH = 200`** characters (covers >95% of Mendeley
+URLs with little waste). Build the character vocabulary from **training URLs only**
+(`build_char_vocab`), reserving id 0 = PAD and 1 = UNK; unseen characters at
+inference map to UNK. Encoding is post-padded (`encode_urls`). Finalizes the
+`MAX_URL_LENGTH` "see D-XXX" note in `config.py`.
+
+### Alternatives considered
+
+- Pad to max length (1,641): ~8× the memory for marginal information gain — rejected.
+- 100 chars: would truncate ~25% of URLs past their distinguishing tail — rejected.
+- Vocab from the full dataset: minor, but fitting on train only keeps the protocol
+  leak-free and consistent with the rest of the pipeline.
+
+### Consequences
+
+- Very long phishing URLs are truncated at 200 (uncommon; acceptable trade-off).
+- Fixed 200-length keeps VRAM predictable (embed 32, batch 64 → fits in <1 GB).
+
+### References
+
+- Phase 1 EDA URL-length stats (`notebooks/01_eda.ipynb` §2); `src/config.py`
+- `src/data/feature_engineering.py` (`build_char_vocab`, `encode_urls`)
+
+---
+
+## D-008: Deep Learning scope = Mendeley only; imbalance via pos_weight (not SMOTE)
+
+**Date:** 2026-06-25
+**Status:** Accepted
+**Phase:** 4
+
+### Context
+
+Char-level DL consumes raw URL strings. Of the three datasets, only **Mendeley**
+has raw URLs — UCI is 30 structured features and our ISCX export is 79 lexical
+features (D-005), neither containing URL text. Separately, SMOTE (used for the
+classical layer) cannot synthesize meaningful character sequences.
+
+### Decision
+
+1. Run the DL layer (CNN, LSTM, CNN-LSTM) on **Mendeley only**. ISCX DL is deferred
+   until raw ISCX URLs are sourced (ties to D-005); UCI is out of scope for DL.
+2. Handle Mendeley's class imbalance (50k/30k) with **`pos_weight` in
+   `BCEWithLogitsLoss`** (= n_neg/n_pos on train), **not SMOTE**.
+
+### Alternatives considered
+
+- DL on UCI/ISCX numeric features via an MLP: rejected — that is not the
+  "learn from the raw URL" story the dissertation contrasts against classical ML.
+- SMOTE on token sequences: rejected — interpolating integer char-ids is meaningless.
+- Random oversampling of minority URLs: viable, but `pos_weight` is simpler and
+  avoids duplicating sequences.
+
+### Consequences
+
+- The DL exit criterion is **3 experiments on Mendeley** (not Mendeley+ISCX).
+- DL-vs-classical comparison is made on Mendeley, where both layers have results.
+- Sourcing ISCX raw URLs later would unblock both ISCX DL and the Phase 6
+  cross-dataset test (D-005).
+
+### References
+
+- D-005 (ISCX schema); Planejamento §6; DEVELOPMENT.md §4.4
+- `src/experiments/runner_deep.py`, `src/models/deep.py`
+
+---
