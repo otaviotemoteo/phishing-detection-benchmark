@@ -77,6 +77,31 @@ def save_feature_importance(estimator, feature_names, path, top_n: int = 15):
     return path
 
 
+def save_training_curve(history: dict, path) -> Path:
+    """Plot train/validation loss per epoch for a DL run.
+
+    Args:
+        history: Dict with ``train_loss`` and ``val_loss`` lists (per epoch).
+        path: Destination PNG path.
+
+    Returns:
+        The path written.
+    """
+    epochs = range(1, len(history["train_loss"]) + 1)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.plot(epochs, history["train_loss"], marker="o", ms=3, label="train")
+    ax.plot(epochs, history["val_loss"], marker="o", ms=3, label="validation")
+    ax.set_xlabel("epoch")
+    ax.set_ylabel("loss (BCE)")
+    ax.set_title("Training curve")
+    ax.legend()
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=PLOT_DPI, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
 def save_roc_curve(y_true, y_proba, path, name: str = "model") -> Path:
     """Plot and save a ROC curve with the random-classifier diagonal.
 
