@@ -40,7 +40,7 @@ SVM_MAX_TRAIN_SAMPLES: int = 15_000  # stratified cap for SVM on large datasets 
 # =============================================================================
 # Feature engineering (URLs)
 # =============================================================================
-MAX_URL_LENGTH: int = 200  # Truncation length for DL models — see D-XXX once decided
+MAX_URL_LENGTH: int = 200  # Truncation length for char-level DL models (D-007)
 
 # =============================================================================
 # Deep Learning training
@@ -49,6 +49,13 @@ DL_BATCH_SIZE: int = 64
 DL_LEARNING_RATE: float = 1e-3
 DL_MAX_EPOCHS: int = 50
 EARLY_STOPPING_PATIENCE: int = 3
+
+# Char-level architecture dims (Planejamento §6.1–§6.2)
+DL_EMBED_DIM: int = 32
+CNN_FILTERS: int = 128
+CNN_KERNEL: int = 3
+LSTM_HIDDEN: int = 128
+DL_DROPOUT: float = 0.3
 
 # =============================================================================
 # Transformer fine-tuning (memory-constrained for GTX 1060 3GB)
@@ -73,6 +80,7 @@ MANIFESTS_DIR: Path = RESULTS_DIR / "manifests"
 MODELS_DIR: Path = RESULTS_DIR / "models"
 CONFUSION_MATRICES_DIR: Path = RESULTS_DIR / "confusion_matrices"
 ROC_CURVES_DIR: Path = RESULTS_DIR / "roc_curves"
+TRAINING_CURVES_DIR: Path = RESULTS_DIR / "training_curves"
 
 PLOTS_EDA_DIR: Path = PLOTS_DIR / "eda"
 PLOTS_FEATURE_IMPORTANCE_DIR: Path = PLOTS_DIR / "feature_importance"
