@@ -12,6 +12,54 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-25 — Phase 4 (Deep Learning)
+
+### What I did
+
+Built the character-level Deep Learning layer: tokenization, three PyTorch
+architectures (CNN, LSTM, CNN-LSTM), a GPU training runner (early stopping + mixed
+precision), and ran all three on Mendeley.
+
+### Results
+
+- New code: char tokenization in `feature_engineering.py` (`build_char_vocab`,
+  `encode_urls`), `src/models/deep.py` (CharCNN/CharLSTM/CharCNNLSTM),
+  `src/experiments/runner_deep.py` (torch training loop) + `run_deep.py`,
+  `save_training_curve` in `plots.py`.
+- **3/3 trained on full 80k Mendeley in 6.7 min** on the GTX 1060 (fp16, batch 64,
+  vocab 81, max_len 200); early stopping fired for all (13–15 epochs); GPU peaked
+  ~650 MB of 2.9 GB.
+- Test results: **LSTM F1 0.937 / AUC 0.991** (227 s), CNN-LSTM 0.932 / 0.988 (88 s),
+  CNN 0.923 / 0.987 (78 s). Params 23k–94k.
+- **Headline: all three DL models beat all six classical models on Mendeley** —
+  DL ~0.92–0.94 F1 vs classical best (XGBoost) 0.857. Char-level learning is ≈ +8 F1
+  points over hand-crafted lexical URL features.
+- **D-007** (truncate@200, vocab from train) + **D-008** (Mendeley-only DL,
+  `pos_weight` not SMOTE) recorded. `metrics_dl.csv` + 3 manifests/CM/ROC/training
+  curves; notebook 04 reads + visualizes (0 errors).
+
+### What worked
+
+- The 1k-subset smoke test validated the whole pipeline in ~7 s before the full run.
+- The evaluation/saving half (metrics, plots, manifests, cost) was reused verbatim —
+  only the training loop was new, exactly as planned.
+- Mixed precision + a small embedding kept the 3 GB GPU comfortable.
+
+### What didn't
+
+- LSTM is ~3× slower than CNN (227 s vs 78 s) for a ~1.5-point F1 gain — a clear
+  cost-benefit point for the dissertation.
+- The CNN-LSTM hybrid did **not** beat plain LSTM here (contrary to Alshingiti 2023) —
+  a finding worth discussing.
+
+### Next
+
+- Phase 5 (optional): DistilBERT fine-tuning on Mendeley URLs — memory-constrained on
+  3 GB (batch 8, max_seq 128, fp16, capped dataset), or document why it's skipped.
+- ISCX DL + cross-dataset still pending raw ISCX URLs (D-005/D-008).
+
+---
+
 ## 2026-06-24 — Phase 3 (classical ML complete)
 
 ### What I did
