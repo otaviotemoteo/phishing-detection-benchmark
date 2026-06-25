@@ -153,9 +153,37 @@ def mendeley_sql_to_csv(sql_path: Path, out_csv: Path) -> int:
     return len(df)
 
 
+_MALICIOUS_KEEP = {"phishing": 1, "benign": 0}
+
+
+def malicious_urls_to_csv(src: Path, out_csv: Path) -> int:
+    """Convert the Kaggle "Malicious URLs" dataset (sid321axn) to ``url, result``.
+
+    The source has columns ``url, type`` (benign/defacement/phishing/malware). For
+    a phishing-vs-benign binary task (D-006/D-010) we keep only ``phishing`` (1) and
+    ``benign`` (0), dropping the other attack classes. Output schema matches Mendeley
+    (``url, result``) so the cross-dataset code treats raw-URL datasets uniformly.
+
+    Args:
+        src: Path to ``malicious_phish.csv``.
+        out_csv: Destination CSV path.
+
+    Returns:
+        The number of rows written.
+    """
+    df = pd.read_csv(src)
+    assert {"url", "type"}.issubset(df.columns), "expected 'url' and 'type' columns"
+    sub = df[df["type"].isin(_MALICIOUS_KEEP)].copy()
+    sub["result"] = sub["type"].map(_MALICIOUS_KEEP).astype(int)
+    out = sub[["url", "result"]].dropna(subset=["url"]).reset_index(drop=True)
+    out.to_csv(out_csv, index=False)
+    return len(out)
+
+
 _CONVERTERS = {
     "uci": uci_arff_to_csv,
     "mendeley": mendeley_sql_to_csv,
+    "malicious_urls": malicious_urls_to_csv,
 }
 
 
