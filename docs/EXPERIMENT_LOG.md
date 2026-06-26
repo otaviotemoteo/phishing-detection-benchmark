@@ -12,6 +12,40 @@ Each entry follows the template in `DEVELOPMENT.md` §11.3:
 
 ---
 
+## 2026-06-25 — Phase 7 (final figures) — experimental stage complete
+
+### What I did
+
+Built the final comparison figures: `src/evaluation/compare.py` (reloads saved models to
+recompute predictions) + notebook 06, producing **7 publication charts** in `plots/final/`
+at 300 DPI.
+
+### Results
+
+- New code: `compare.py` (`load_all_metrics`, `get_predictions` via deterministic model reload,
+  7 chart functions) + `06_comparisons.ipynb` (thin orchestration).
+- 7 tracked figures in `plots/final/` (300 DPI, grayscale-safe): `metric_bars`, `roc_overlay`
+  (3 panels, AUC in legend), `f1_heatmap`, `confusion_grid_mendeley` (9 models), `time_vs_f1`,
+  `feature_importance` (RF vs XGBoost on UCI), `crossdataset_drop`.
+- ROC / confusion / importance recomputed by reloading the saved `.joblib`/`.pt` models on the
+  seeded test split — **no retraining**.
+- Notebook 06 runs top-to-bottom with 0 errors.
+
+### What worked
+
+- The architecture paid off: `compare.py` reused `load_raw`/`to_xy`/`split_data` + the DL
+  vocab/encode/model-build helpers to reload any model deterministically — no training code rewritten.
+- Grayscale-safe styling (ROC linestyles, bar hatches, annotated heatmap) survives a B&W print test.
+
+### Status
+
+- **Experimental stage complete (Phases 0–7).** Phase 5 (DistilBERT) deliberately skipped (D-009).
+- Headline narrative for the dissertation: strong within-dataset performance (tree ensembles +
+  char-level DL ≈ 0.94–0.99 AUC) **vs** the cross-dataset collapse to near-random (memorization, D-010).
+- Remaining work is writing: drop the `plots/final/` figures + metrics tables into the dissertation.
+
+---
+
 ## 2026-06-25 — Phase 6 (cross-dataset generalization)
 
 ### What I did
