@@ -80,11 +80,11 @@ python -m src.experiments.run_cross --all
 jupyter nbconvert --execute notebooks/05_crossdataset.ipynb --to notebook --inplace
 
 # -----------------------------------------------------------------------------
-# Phase 7 — Final visualizations (TODO)
+# Phase 7 — Final visualizations
 # -----------------------------------------------------------------------------
-# echo ""
-# echo "[Phase 7] Generating final plots..."
-# jupyter nbconvert --execute notebooks/06_comparisons.ipynb --to notebook --inplace
+echo ""
+echo "[Phase 7] Generating final comparison figures..."
+jupyter nbconvert --execute notebooks/06_comparisons.ipynb --to notebook --inplace
 
 echo ""
 echo "============================================================"
