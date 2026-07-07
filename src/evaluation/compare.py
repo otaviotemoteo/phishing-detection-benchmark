@@ -214,8 +214,18 @@ def fig_time_vs_f1(metrics: pd.DataFrame) -> Path:
     return _save(fig, "time_vs_f1.png")
 
 
-def fig_feature_importance(dataset: str = "uci", top_n: int = 15) -> Path:
-    """Chart 6 — top-N feature importances for RandomForest and XGBoost."""
+def fig_feature_importance(
+    dataset: str = "uci",
+    top_n: int = 15,
+    *,
+    filename: str = "feature_importance.png",
+    title_fmt: str | None = None,
+) -> Path:
+    """Chart 6 — top-N feature importances for RandomForest and XGBoost.
+
+    ``title_fmt`` may reference ``{model}`` and overrides the default
+    "{model} — top {top_n} features ({DATASET})" panel title.
+    """
     X, _ = to_xy(load_raw(dataset), dataset)
     names = list(X.columns)
     fig, axes = plt.subplots(1, 2, figsize=(13, 6))
@@ -224,10 +234,11 @@ def fig_feature_importance(dataset: str = "uci", top_n: int = 15) -> Path:
         est = joblib.load(path).named_steps["model"]
         top = pd.Series(est.feature_importances_, index=names).sort_values(ascending=False).head(top_n)
         top.sort_values().plot(kind="barh", color="#2a9d8f", ax=ax)
-        ax.set_title(f"{model} — top {top_n} features ({dataset.upper()})")
+        title = (title_fmt or f"{{model}} — top {top_n} features ({dataset.upper()})").format(model=model)
+        ax.set_title(title)
         ax.set_xlabel("importance")
     fig.tight_layout()
-    return _save(fig, "feature_importance.png")
+    return _save(fig, filename)
 
 
 def fig_crossdataset_drop() -> Path:
@@ -265,5 +276,11 @@ def generate_all() -> list[Path]:
         fig_confusion_grid(metrics, "mendeley"),
         fig_time_vs_f1(metrics),
         fig_feature_importance("uci"),
+        fig_feature_importance(
+            "mendeley",
+            top_n=13,  # all 13 lexical URL features (§5.5)
+            filename="feature_importance_mendeley.png",
+            title_fmt="{model} — top features (Mendeley)",
+        ),
         fig_crossdataset_drop(),
     ]

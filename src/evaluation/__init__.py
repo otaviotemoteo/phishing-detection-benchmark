@@ -1,1 +1,1 @@
-"""src.evaluation module — TODO: implement during the corresponding phase."""
+"""src.evaluation — standardized metrics, cost tracking, per-experiment and final plots."""

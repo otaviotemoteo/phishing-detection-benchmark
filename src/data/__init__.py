@@ -1,1 +1,1 @@
-"""src.data module — TODO: implement during the corresponding phase."""
+"""src.data — dataset loaders, preprocessing (splits/SMOTE/scaling), URL feature engineering."""

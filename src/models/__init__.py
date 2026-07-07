@@ -1,1 +1,1 @@
-"""src.models module — TODO: implement during the corresponding phase."""
+"""src.models — classical ML model factory and char-level PyTorch architectures."""

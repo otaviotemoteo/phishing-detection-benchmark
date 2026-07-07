@@ -1,1 +1,1 @@
-"""src.utils module — TODO: implement during the corresponding phase."""
+"""src.utils — seeds, dataset hashing/IO, experiment manifests."""
