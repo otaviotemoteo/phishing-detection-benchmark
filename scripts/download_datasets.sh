@@ -2,11 +2,12 @@
 # =============================================================================
 # Phishing Detection Benchmark — Dataset Downloader
 # =============================================================================
-# Fetches the three datasets into ./data/ and converts each to a flat CSV.
+# Fetches the four datasets into ./data/ and converts each to a flat CSV.
 # Idempotent: a dataset whose CSV already exists is skipped.
 #
 #   UCI Phishing Websites  — auto (zip -> ARFF -> uci_phishing.csv)
 #   Mendeley n96ncsr5g4/1  — auto (index.sql -> mendeley_phishing.csv)
+#   Malicious URLs (Kaggle)— auto (anonymous Kaggle API zip -> malicious_urls.csv)
 #   ISCX-URL2016           — MANUAL: UNB CIC distributes it behind a
 #                            registration form, so it cannot be fetched
 #                            non-interactively. The script prints instructions.
@@ -35,9 +36,12 @@ fi
 UCI_CSV="$DATA_DIR/uci_phishing.csv"
 MENDELEY_CSV="$DATA_DIR/mendeley_phishing.csv"
 ISCX_CSV="$DATA_DIR/iscx_url2016.csv"
+MALICIOUS_CSV="$DATA_DIR/malicious_urls.csv"
 
 UCI_URL="https://archive.ics.uci.edu/static/public/327/phishing+websites.zip"
 MENDELEY_URL="https://data.mendeley.com/public-files/datasets/n96ncsr5g4/files/dac80106-cc68-43c3-8810-96408c09fbbc/file_downloaded"
+# Anonymous download endpoint for public Kaggle datasets (no account needed).
+MALICIOUS_URL="https://www.kaggle.com/api/v1/datasets/download/sid321axn/malicious-urls-dataset"
 
 echo "============================================================"
 echo "Dataset download  (data dir: $DATA_DIR)"
@@ -75,6 +79,51 @@ else
 fi
 
 # -----------------------------------------------------------------------------
+# Malicious URLs (Kaggle sid321axn/malicious-urls-dataset) — Phase 6 cross-dataset
+# corpus (D-010). Filtered to phishing+benign with schema (url, result) by the
+# converter, matching Mendeley.
+# -----------------------------------------------------------------------------
+if [[ -f "$MALICIOUS_CSV" ]]; then
+  echo "[malicious_urls] present, skipping: $MALICIOUS_CSV"
+else
+  raw="$DATA_DIR/malicious_phish.csv"
+  if [[ ! -f "$raw" ]]; then
+    echo "[malicious_urls] downloading from Kaggle (anonymous public API)..."
+    tmpzip="$DATA_DIR/_malicious_urls.zip"
+    tmpdir="$DATA_DIR/_malicious_extract"
+    if curl -fSL --retry 3 -o "$tmpzip" "$MALICIOUS_URL"; then
+      rm -rf "$tmpdir" && mkdir -p "$tmpdir"
+      "$PYTHON" -c "import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$tmpzip" "$tmpdir"
+      found="$(find "$tmpdir" -iname 'malicious_phish.csv' | head -1)"
+      if [[ -n "$found" ]]; then
+        mv "$found" "$raw"
+      else
+        echo "[malicious_urls] ERROR: malicious_phish.csv not found in the archive" >&2
+      fi
+      rm -rf "$tmpzip" "$tmpdir"
+    else
+      rm -f "$tmpzip"
+      echo "[malicious_urls] WARN: anonymous Kaggle download failed."
+    fi
+  fi
+  if [[ -f "$raw" ]]; then
+    "$PYTHON" "$SCRIPT_DIR/convert_datasets.py" malicious_urls "$raw" "$MALICIOUS_CSV"
+    rm -f "$raw"
+  else
+    cat <<EOF
+
+[malicious_urls] MANUAL FALLBACK
+  The anonymous Kaggle download did not succeed. To fetch it manually:
+    1. Open:  https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset
+    2. Download and extract the archive (it contains malicious_phish.csv).
+    3. Place the raw file at:
+         $DATA_DIR/malicious_phish.csv
+  Then re-run:  bash scripts/download_datasets.sh
+EOF
+  fi
+fi
+
+# -----------------------------------------------------------------------------
 # ISCX-URL2016 (manual — registration-gated)
 # -----------------------------------------------------------------------------
 if [[ -f "$ISCX_CSV" ]]; then
@@ -107,4 +156,5 @@ echo ""
 echo "============================================================"
 echo "Download step complete."
 [[ -f "$ISCX_CSV" ]] || echo "NOTE: ISCX-URL2016 still pending (manual step above)."
+[[ -f "$MALICIOUS_CSV" ]] || echo "NOTE: malicious_urls still pending (see fallback above)."
 echo "============================================================"

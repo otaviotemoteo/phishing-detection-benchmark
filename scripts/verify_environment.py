@@ -191,7 +191,7 @@ def main() -> int:
 
     print("\n" + "=" * 70)
     if all(results):
-        print(f"{GREEN}All checks passed.{RESET} You are ready to start Phase 1.")
+        print(f"{GREEN}All checks passed.{RESET} You are ready to run the pipeline (scripts/run_all.sh).")
         print("=" * 70)
         return 0
     else:
