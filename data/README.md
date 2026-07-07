@@ -1,6 +1,6 @@
 # Datasets
 
-This directory holds the three datasets used in the experiments. **Raw CSV files are not committed to Git** (see `.gitignore`); only the hash registry and this README are tracked.
+This directory holds the four datasets used in the experiments. **Raw CSV files are not committed to Git** (see `.gitignore`); only the hash registry and this README are tracked.
 
 ## Datasets used
 
@@ -9,6 +9,7 @@ This directory holds the three datasets used in the experiments. **Raw CSV files
 | UCI Phishing Websites | 11,055 | 30 structured (±1) | https://archive.ics.uci.edu/dataset/327/phishing+websites |
 | Mendeley Phishing Websites Dataset | 80,000 | raw URL (+ HTML filename) | https://data.mendeley.com/datasets/n96ncsr5g4/1 |
 | ISCX-URL2016 | 36,707 | 79 lexical URL features (5-class label) | https://www.unb.ca/cic/datasets/url-2016.html |
+| Malicious URLs (Kaggle) | 522,214 after filtering | raw URL + binary label | https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset |
 
 > **Mendeley note (see D-003):** the published download is a single `index.sql`
 > with columns `rec_id, url, website, result, created_date` (80,000 rows; `result`
@@ -22,6 +23,12 @@ This directory holds the three datasets used in the experiments. **Raw CSV files
 > + a 5-class `URL_Type_obf_Type` label), **not** raw URLs; this affects the
 > cross-dataset plan (D-005). It loads directly via `load_raw("iscx")` (already a CSV,
 > no converter needed).
+>
+> **Malicious URLs note (see D-010):** the second raw-URL corpus for the Phase 6
+> cross-dataset test (ISCX-derived, among other sources). Auto-downloaded anonymously
+> via Kaggle's public API by `scripts/download_datasets.sh`; the converter keeps only
+> the `phishing` (1) and `benign` (0) classes from the original 651k rows (dropping
+> defacement/malware) and writes the Mendeley-compatible schema `url, result`.
 
 ## Expected filenames after download
 
@@ -30,6 +37,7 @@ data/
 ├── uci_phishing.csv
 ├── mendeley_phishing.csv
 ├── iscx_url2016.csv
+├── malicious_urls.csv
 └── dataset_hashes.json    (auto-generated, committed)
 ```
 
@@ -47,4 +55,4 @@ These hashes are recorded in every experiment manifest to guarantee that results
 
 ## PhishTank exclusion
 
-Although the literature often mentions PhishTank, it is **deliberately excluded** from this work's experimental design (see §5.1 of the dissertation and D-XXX in `DECISIONS.md`). PhishTank is a continuously-updated repository, making cross-study comparison and bitwise reproducibility infeasible.
+Although the literature often mentions PhishTank, it is **deliberately excluded** from this work's experimental design. PhishTank is a continuously-updated live feed rather than a versioned snapshot: two downloads on different days yield different data, making cross-study comparison and the bitwise reproducibility this project requires (hash-pinned datasets recorded in every manifest) infeasible.

@@ -154,6 +154,7 @@ phishing-detection-benchmark/
 │   ├── uci_phishing.csv
 │   ├── mendeley_phishing.csv
 │   ├── iscx_url2016.csv
+│   ├── malicious_urls.csv             # Kaggle corpus for Phase 6 cross-dataset (D-010)
 │   └── dataset_hashes.json            # SHA256 of each dataset for reproducibility
 │
 ├── notebooks/                         # Exploratory/narrative notebooks
@@ -161,47 +162,55 @@ phishing-detection-benchmark/
 │   ├── 02_preprocessing.ipynb
 │   ├── 03_ml_classical.ipynb
 │   ├── 04_deep_learning.ipynb
-│   ├── 05_transformers.ipynb
+│   ├── 05_crossdataset.ipynb          # (a Transformers notebook was planned; Phase 5 skipped — D-009)
 │   └── 06_comparisons.ipynb
 │
 ├── src/                               # Reusable Python modules
 │   ├── __init__.py
+│   ├── config.py                      # All shared constants (seeds, splits, paths)
 │   ├── data/
 │   │   ├── loaders.py                 # Dataset loading functions
 │   │   ├── preprocessing.py           # Cleaning, splits, SMOTE
-│   │   └── feature_engineering.py     # URL feature extraction
+│   │   └── feature_engineering.py     # URL features + char-level tokenization
 │   ├── models/
-│   │   ├── classical.py               # sklearn-based models
-│   │   ├── deep.py                    # PyTorch CNN, LSTM, hybrid
-│   │   └── transformers.py            # DistilBERT fine-tuning
+│   │   ├── classical.py               # sklearn-based model factory + search grids
+│   │   └── deep.py                    # PyTorch CNN, LSTM, CNN-LSTM
 │   ├── evaluation/
 │   │   ├── metrics.py                 # Standardized metric computation
 │   │   ├── cost.py                    # Computational cost tracking
-│   │   └── plots.py                   # Confusion matrices, ROC curves
+│   │   ├── plots.py                   # Confusion matrices, ROC, training curves
+│   │   └── compare.py                 # Final publication figures (Phase 7)
+│   ├── experiments/
+│   │   ├── runner.py                  # Classical train/evaluate/persist pipeline
+│   │   ├── runner_deep.py             # DL training loop (GPU, AMP, early stopping)
+│   │   ├── runner_cross.py            # Cross-dataset protocol (D-010)
+│   │   └── run_classical|deep|cross.py  # CLI orchestrators
 │   └── utils/
 │       ├── seeds.py                   # Centralized seed management
 │       ├── manifests.py               # Experiment manifest generation
-│       └── io.py                      # Standardized save/load
+│       └── io.py                      # Hashing, metrics-CSV upsert, filenames
 │
-├── results/                           # All experiment outputs (gitignored except CSVs)
+├── results/                           # All experiment outputs (gitignored except CSVs/manifests)
 │   ├── metrics_ml.csv                 # Classical ML results
 │   ├── metrics_dl.csv                 # Deep Learning results
-│   ├── metrics_transformers.csv       # Transformer results
 │   ├── metrics_crossdataset.csv       # Cross-dataset generalization
+│   │                                  # (no metrics_transformers.csv — Phase 5 skipped, D-009)
 │   ├── manifests/                     # JSON manifest per experiment
 │   ├── models/                        # Saved model artifacts (joblib, .pt)
 │   ├── confusion_matrices/
-│   └── roc_curves/
+│   ├── roc_curves/
+│   └── training_curves/               # DL loss curves
 │
-├── plots/                             # Final publication-ready plots
+├── plots/
 │   ├── eda/
-│   ├── feature_importance/
-│   └── final/                         # Plots that go into the dissertation
+│   ├── feature_importance/            # Per-experiment importance plots (tree models)
+│   └── final/                         # Publication-ready figures (tracked in Git)
 │
 ├── mlruns/                            # MLflow tracking directory (gitignored)
 │
 └── scripts/                           # Standalone executable scripts
     ├── download_datasets.sh
+    ├── convert_datasets.py            # Raw artifact -> flat CSV converters
     ├── run_all.sh                     # Full pipeline reproduction
     └── verify_environment.py          # Sanity check for setup
 ```
@@ -917,7 +926,7 @@ mlflow ui --backend-store-uri ./mlruns
 python -c "from src.utils.io import hash_dataset; print(hash_dataset('data/uci_phishing.csv'))"
 
 # Regenerate all final plots from CSVs (no retraining)
-jupyter nbconvert --execute notebooks/06_comparisons.ipynb
+python -m nbconvert --execute notebooks/06_comparisons.ipynb --to notebook --inplace
 
 # Reproduce the full pipeline
 bash scripts/run_all.sh
