@@ -59,8 +59,24 @@ else
   curl -fSL --retry 3 -o "$tmpzip" "$UCI_URL"
   rm -rf "$tmpdir" && mkdir -p "$tmpdir"
   "$PYTHON" -c "import sys,zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$tmpzip" "$tmpdir"
-  arff="$(find "$tmpdir" -iname '*.arff' | head -1)"
+  # Pick the LARGEST .arff, not the first one `find` happens to return. The
+  # archive also ships a hidden `.old.arff` with 2,456 rows next to the real
+  # `Training Dataset.arff` with 11,055, and a dot-file sorts first: taking
+  # head -1 silently trained the whole UCI benchmark on a fifth of the data
+  # while every log still said "uci". Failing loudly would have been fine;
+  # succeeding on the wrong file was not.
+  # `stat` takes -c on GNU/Linux and -f on BSD/macOS, so size comes from Python,
+  # which is already a hard dependency here and behaves the same on both.
+  arff="$("$PYTHON" - "$tmpdir" <<'PYEOF'
+import pathlib, sys
+files = sorted(pathlib.Path(sys.argv[1]).rglob("*.arff"),
+               key=lambda p: p.stat().st_size, reverse=True)
+print(files[0] if files else "", end="")
+PYEOF
+)"
   [[ -n "$arff" ]] || { echo "[UCI] ERROR: no .arff found in archive" >&2; exit 1; }
+  echo "[UCI] using $(basename "$arff")"
+
   "$PYTHON" "$SCRIPT_DIR/convert_datasets.py" uci "$arff" "$UCI_CSV"
   rm -rf "$tmpzip" "$tmpdir"
 fi

@@ -17,6 +17,7 @@ data/processed/
 # Models - too large for Git, back up externally
 # =============================================================================
 results/models/
+!results/models/.gitkeep
 *.pt
 *.pth
 *.h5
