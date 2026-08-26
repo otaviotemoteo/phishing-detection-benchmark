@@ -11,12 +11,11 @@ Python 3.11.
 
 ### Platforms
 
-Developed and originally run on **Linux**. On **macOS** (Apple Silicon) the
-environment check, the dataset downloads, the classical benchmark and the deep
-learning phase have all been run and pass; the cross-dataset phase and the final
-figures have not been confirmed there yet. Every script is written to work on
-both: where a command differs between GNU and BSD userland, the work is done in
-Python instead, which is already a hard dependency.
+Developed and originally run on **Linux**, and run end to end on **macOS**
+(Apple Silicon): all 33 experiments complete there, with the caveat about
+numerical agreement in "The verification run" below. Every script is written to
+work on both: where a command differs between GNU and BSD userland, the work is
+done in Python instead, which is already a hard dependency.
 
 **Windows is untested.** The shell scripts assume a POSIX shell, so WSL is the
 path most likely to work, and nobody has confirmed it. If you try it and it
@@ -172,18 +171,45 @@ on the same Linux machine, and reproduced all 33 experiments with identical
 metric values in every cell: accuracy, precision, recall, F1 and AUC. Seven of
 the eight final figures came out byte-identical.
 
-**Across platforms it is close but not bitwise.** The same pipeline re-run on
-macOS on Apple Silicon, with every pinned library resolving to the same version
-(numpy 1.26.4, scikit-learn 1.5.2, xgboost 2.1.1, torch 2.4.1) and the same
-dataset hashes, reproduced 60% of the 165 metric values exactly and diverged on
-the rest by at most 0.0067, with a median difference of zero and nothing above
-0.01. Not one conclusion in `RESULTS.md` moves at that magnitude.
+**Across platforms it is not bitwise, and the gap is uneven.** The full pipeline
+was re-run on macOS on Apple Silicon, with every pinned library resolving to the
+same version (numpy 1.26.4, scikit-learn 1.5.2, xgboost 2.1.1, torch 2.4.1) and
+the same four dataset hashes. All 33 experiments completed and were compared
+against the manifests in this repository, metric by metric:
 
-The cause is the linear algebra underneath: NumPy and scikit-learn bind to
-OpenBLAS on x86 Linux and to Apple's Accelerate framework on Apple Silicon, and
-the two accumulate floating point in a different order. A seed pins the random
-choices, not the arithmetic. That is worth knowing before you compare your run
-against the tables here and conclude something drifted.
+| Family | Metrics | Identical | Largest gap | Median gap |
+|---|---|---|---|---|
+| Classical | 90 | 18 (20%) | 0.043 | 0.0009 |
+| Deep, within-dataset | 15 | 0 | 0.034 | 0.0036 |
+| Cross-dataset | 60 | 0 | 0.074 | 0.0013 |
+
+The divergence is concentrated in the neural models rather than spread evenly.
+In the cross-dataset test, the four tree-based runs come back at 0.407, 0.302,
+0.397 and 0.318 F1 against 0.407, 0.301, 0.396 and 0.317 published here, which is
+agreement to the third decimal. The CNN-LSTM runs are the ones that move, and
+they are also the only ones that trained on a GPU originally and on CPU here.
+
+**No conclusion moves.** The headline finding, that transfer collapses, holds
+with the same shape: cross-dataset F1 landed in 0.30 to 0.49 against the 0.30 to
+0.52 reported, and AUC in 0.42 to 0.63 against 0.45 to 0.64. The CNN-LSTM still
+lands below 0.5 AUC in one direction, so the observation that its ranking
+partially inverts survives too.
+
+**The cause is not fully isolated, and saying so is part of the result.** For the
+neural models it is clearly the execution path: CUDA on the reference machine
+against CPU here, which is a different set of kernels and a different reduction
+order, not a subtler version of the same computation. For the classical models
+the likely contributor is the linear algebra underneath, since NumPy and
+scikit-learn bind to OpenBLAS on x86 Linux and to Apple's Accelerate framework on
+Apple Silicon. That has not been isolated by controlled experiment here, and a
+0.043 swing in one recall value is larger than a pure accumulation-order argument
+comfortably explains.
+
+What this establishes is narrower and more useful than a single number: a seed
+pins the random choices, not the arithmetic, and bitwise reproducibility is a
+property of a platform rather than of a pipeline. Compare your run against the
+tables here expecting agreement in the conclusions and in the third decimal for
+the tree models, not in every digit.
 
 The evidence is in the repository, so it can be checked without running
 anything. `results/manifests/` keeps both runs side by side. Compare any

@@ -108,12 +108,13 @@ The full tables, every figure, and the interpretation are in
   boundary worth naming.** One seed, pinned versions, a SHA-256 per dataset, and
   a manifest tying every experiment's numbers to the commit that produced them.
   Re-run from scratch two weeks later on the same machine, all 33 experiments
-  came back with identical metric values. Re-run on a different platform, they
-  do not: 60% of the metrics still match to the last digit and the rest diverge
-  by at most 0.0067, because the linear algebra library underneath is a
-  different one. Bitwise reproducibility is a property of a platform, not of a
-  pipeline, and saying so is more useful than a claim that quietly fails on
-  somebody else's laptop.
+  came back with identical metric values. Re-run on a different platform they do
+  not, and the gap is uneven: the tree models still agree to the third decimal,
+  the neural ones move by up to 0.074, and the ones that move are exactly the
+  ones that trained on a GPU there and on a CPU here. Every conclusion survives
+  and no single digit does. Bitwise reproducibility is a property of a platform,
+  not of a pipeline, and saying so is more useful than a claim that quietly
+  fails on somebody else's laptop.
 - **Both halves of a comparison must be measured the same way, and cost counts as
   a half.** The transfer number is only interesting beside a within-dataset
   baseline built under identical preprocessing and normalisation. Training time,
@@ -179,9 +180,10 @@ Schemas, caveats and the hash registry: [`data/README.md`](data/README.md).
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Stack, conventions, roadmap, and the reproducibility protocol in full |
 | [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md) | Chronological lab journal of every experiment session |
 
-Linux is the reference platform. macOS is verified through the deep learning
-phase; see `docs/SETUP.md` for exactly how far. Windows is untested: the scripts
-assume a POSIX shell, so WSL is the likeliest path.
+Linux is the reference platform. All 33 experiments also run end to end on
+macOS, with the numerical caveat above; `docs/SETUP.md` has the full comparison.
+Windows is untested: the scripts assume a POSIX shell, so WSL is the likeliest
+path.
 
 ```bash
 git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
