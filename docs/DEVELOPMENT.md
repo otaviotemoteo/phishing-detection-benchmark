@@ -11,7 +11,7 @@
 
 This is the operational guide for the experimental phase of the Scientific Initiation. It defines the development methodology, technical stack, roadmap, conventions, and reproducibility procedures that must be followed throughout the project.
 
-It is intentionally written to be **indexed by AI coding assistants** (Claude Code, Cursor, Copilot Chat). When working on any task related to this project, the assistant should read this document first as authoritative context. All decisions documented here override conflicting suggestions from generic best-practice knowledge.
+It is written to be the first thing anyone reads before touching the project, and to be authoritative: where a decision recorded here conflicts with generic best practice, the decision here wins, or it gets changed here first.
 
 This document complements but does not replace:
 - `Planejamento - Experimento Prático.docx` — the high-level experimental design
@@ -30,7 +30,7 @@ This document complements but does not replace:
 7. [Computational cost measurement](#7-computational-cost-measurement)
 8. [Documentation artifacts](#8-documentation-artifacts)
 9. [Hardware constraints and contingencies](#9-hardware-constraints-and-contingencies)
-10. [How to use this guide with an AI assistant](#10-how-to-use-this-guide-with-an-ai-assistant)
+10. [Working against this guide](#10-working-against-this-guide)
 11. [Templates](#11-templates)
 
 ---
@@ -772,36 +772,42 @@ The methodology section of the dissertation must mention this contingency if inv
 
 ---
 
-## 10. How to use this guide with an AI assistant
+## 10. Working against this guide
 
-When working with Claude Code, Cursor, Copilot Chat, or any AI coding assistant:
+### 10.1 Read it before the first change, not after
 
-### 10.1 Provide this document as context
+This document is the context for every task in the project. Starting a session
+without it produces work that is locally reasonable and globally inconsistent,
+which is the expensive kind of wrong.
 
-At the start of every session, ensure the assistant has read `DEVELOPMENT.md`. In Claude Code or Cursor, this is automatic if the file is in the project. In a chat-based assistant, paste a link or relevant sections.
+### 10.2 Name the sections a change has to satisfy
 
-### 10.2 Reference specific sections in prompts
+Vague: "train a Random Forest."
 
-Bad: "help me train a Random Forest"
-Good: "implement training for Random Forest following §3 (repo structure), §5 (conventions), §6 (reproducibility), and §7 (cost metrics) of DEVELOPMENT.md"
+Useful: "implement Random Forest training following §3 (repository structure),
+§5 (conventions), §6 (reproducibility) and §7 (cost metrics)."
 
-### 10.3 Require justification against this guide
+The second version is checkable. The first one is not.
 
-When the assistant suggests something:
-- If it conflicts with a guideline here, ask it to justify the deviation
-- If the deviation is sound, document the new decision in `DECISIONS.md`
-- If the guideline is the right call, override the assistant
+### 10.3 A deviation needs a justification, and then a record
 
-### 10.4 Push back on premature optimization
+If something here is the wrong call for the case at hand, that is allowed. What
+is not allowed is deviating silently: the new decision goes into `DECISIONS.md`
+with its reasoning, so the next person finds a decision rather than an
+inconsistency.
 
-AI assistants often suggest optimizations (caching, multiprocessing, fancy architectures). Reject these until a baseline is established. Reference §1.4.
+### 10.4 Refuse optimization before a baseline exists
 
-### 10.5 Use the assistant to maintain documentation
+Caching, multiprocessing and more elaborate architectures are all tempting
+before there is anything to compare them against. They stay out until a baseline
+is measured. See §1.4.
 
-After each experiment session, ask the assistant to:
-- Draft the entry for `EXPERIMENT_LOG.md` based on what was done
-- Identify any decisions worth recording in `DECISIONS.md`
-- Update version numbers in `requirements.txt` if anything changed
+### 10.5 Write the log while the session is still fresh
+
+At the end of an experiment session, draft the `EXPERIMENT_LOG.md` entry, note
+anything that deserves a record in `DECISIONS.md`, and update `requirements.txt`
+if a version moved. A week later the details are gone and the entry becomes a
+summary of a summary.
 
 ---
 

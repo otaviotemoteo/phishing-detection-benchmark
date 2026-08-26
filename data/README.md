@@ -1,15 +1,47 @@
 # Datasets
 
-This directory holds the four datasets used in the experiments. **Raw CSV files are not committed to Git** (see `.gitignore`); only the hash registry and this README are tracked.
+This directory holds the corpora used in the experiments: three main datasets,
+plus one additional corpus restricted to the cross-dataset scenario. **Raw CSV
+files are not committed to Git** (see `.gitignore`); only the hash registry and
+this README are tracked.
 
-## Datasets used
+## Main datasets
+
+Curated academic releases. All three are evaluated in the intra-dataset scenario.
 
 | Dataset | Samples | Features | Source |
 |---|---|---|---|
 | UCI Phishing Websites | 11,055 | 30 structured (±1) | https://archive.ics.uci.edu/dataset/327/phishing+websites |
 | Mendeley Phishing Websites Dataset | 80,000 | raw URL (+ HTML filename) | https://data.mendeley.com/datasets/n96ncsr5g4/1 |
 | ISCX-URL2016 | 36,707 | 79 lexical URL features (5-class label) | https://www.unb.ca/cic/datasets/url-2016.html |
-| Malicious URLs (Kaggle) | 522,214 after filtering | raw URL + binary label | https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset |
+
+## Additional dataset: Malicious URLs (cross-dataset scenario only)
+
+An additional dataset was incorporated into the experimental design during the
+cross-dataset generalization stage:
+
+- **Malicious URLs**: ~522,214 labeled URLs after selecting the `phishing` and
+  `benign` classes. Source: public dataset available on Kaggle, aggregating URLs
+  from multiple independent sources including ISCX-URL2016 and PhishTank.
+  https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset
+
+**Why it was added.** The original experimental plan envisioned the cross-dataset
+scenario using Mendeley and ISCX-URL2016 both under a raw URL representation.
+However, the public distribution of ISCX-URL2016 contains only pre-extracted
+lexical attributes, not raw URLs (see the Limitations section of the
+dissertation). This ruled out ISCX as the cross-dataset counterpart of Mendeley
+under the shared character-level representation used by the Deep Learning models,
+and made a substitute necessary.
+
+**Why it is not treated as a fourth main dataset.** Malicious URLs is an
+aggregation of public sources rather than a curated academic release like UCI,
+Mendeley, or ISCX. Its use is therefore restricted to the cross-dataset scenario,
+where its scale and heterogeneity are advantageous, and it is not evaluated in
+the intra-dataset scenario.
+
+**Files.**
+- `malicious_urls.csv` (not committed; see `dataset_hashes.json` for the SHA-256
+  of the exact file used in the experiments)
 
 > **Mendeley note (see D-003):** the published download is a single `index.sql`
 > with columns `rec_id, url, website, result, created_date` (80,000 rows; `result`
