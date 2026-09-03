@@ -99,4 +99,16 @@ URL-only input (Mendeley ships no HTML content — [D-003](DECISIONS.md)); the I
 
 ## 6. Reproducing
 
-`bash scripts/run_all.sh` reruns everything (≈2 h on the reference machine — see [README](../README.md#quick-start)). Seeds are fixed (42), datasets are hash-pinned, and each experiment writes a JSON manifest to `results/manifests/`; metric values reproduce exactly, while timing columns vary run to run.
+`bash scripts/run_all.sh` reruns everything (≈2 h on the reference machine — see [README](../README.md#quick-start)). Seeds are fixed (42), datasets are hash-pinned, and each experiment writes a JSON manifest to `results/manifests/`; timing columns vary run to run.
+
+**Same platform, exact.** Re-run from scratch on 2026-07-07 on the reference Linux machine, all 33 experiments returned identical metric values in every cell, and seven of the eight final figures came out byte-identical.
+
+**Across platforms, the conclusions but not the digits.** The pipeline also completes end to end on macOS (Apple Silicon) and natively on Windows 11 under Git Bash, both with every pinned version resolving the same and the same four dataset hashes. Compared against the Linux manifests, metric by metric:
+
+| Family | Metrics | Identical (macOS / Win) | Largest gap (macOS / Win) | Median gap (macOS / Win) |
+|---|---|---|---|---|
+| Classical | 90 | 18 / 49 | 0.043 / 0.0120 | 0.0009 / 0.0000 |
+| Deep, within-dataset | 15 | 0 / 0 | 0.034 / 0.0247 | 0.0036 / 0.0047 |
+| Cross-dataset | 60 | 0 / 1 | 0.074 / 0.0505 | 0.0013 / 0.0011 |
+
+Every finding above survives on both. The transfer collapse keeps its shape (Windows cross-dataset F1 0.301–0.507 against the 0.301–0.520 reported here), the within-dataset baseline reproduces identically at 0.756–0.938, and the same CNN-LSTM direction still lands below 0.5 AUC. Windows agrees more closely than macOS wherever the linear algebra dominates — it shares OpenBLAS with the Linux reference, where Apple Silicon uses Accelerate — and no better on the neural models, which ran on CPU on both against the reference's GPU. Full analysis in [SETUP.md](SETUP.md#the-verification-run).

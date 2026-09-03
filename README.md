@@ -111,10 +111,15 @@ The full tables, every figure, and the interpretation are in
   came back with identical metric values. Re-run on a different platform they do
   not, and the gap is uneven: the tree models still agree to the third decimal,
   the neural ones move by up to 0.074, and the ones that move are exactly the
-  ones that trained on a GPU there and on a CPU here. Every conclusion survives
-  and no single digit does. Bitwise reproducibility is a property of a platform,
-  not of a pipeline, and saying so is more useful than a claim that quietly
-  fails on somebody else's laptop.
+  ones that trained on a GPU there and on a CPU here. Adding Windows as a third
+  platform turned that observation into a test it could have failed. Sharing
+  x86-64 and OpenBLAS with Linux, its classical runs tightened to a median gap
+  of zero with 54% of metrics bit-identical, while its neural runs, on CPU like
+  macOS's, moved just as much as macOS's did. The divergence tracks its cause,
+  not the operating system. Every conclusion survives on all three and no single
+  digit does. Bitwise reproducibility is a property of a platform, not of a
+  pipeline, and saying so is more useful than a claim that quietly fails on
+  somebody else's laptop.
 - **Both halves of a comparison must be measured the same way, and cost counts as
   a half.** The transfer number is only interesting beside a within-dataset
   baseline built under identical preprocessing and normalisation. Training time,
@@ -181,14 +186,13 @@ Schemas, caveats and the hash registry: [`data/README.md`](data/README.md).
 | [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md) | Chronological lab journal of every experiment session |
 
 Linux is the reference platform. All 33 experiments also run end to end on
-macOS, with the numerical caveat above; `docs/SETUP.md` has the full comparison.
-Windows is untested: the scripts assume a POSIX shell, so WSL is the likeliest
-path.
+macOS and on Windows, with the numerical caveat above; `docs/SETUP.md` has the
+full comparison. Windows runs natively under Git Bash and does not need WSL.
 
 ```bash
 git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
 cd phishing-detection-benchmark
-python3.11 -m venv .venv && source .venv/bin/activate
+python3.11 -m venv .venv && source .venv/bin/activate   # Windows: .venv/Scripts/activate
 pip install -r requirements.txt
 brew install libomp                  # macOS only: XGBoost needs the OpenMP runtime
 python scripts/verify_environment.py

@@ -12,14 +12,21 @@ Python 3.11.
 ### Platforms
 
 Developed and originally run on **Linux**, and run end to end on **macOS**
-(Apple Silicon): all 33 experiments complete there, with the caveat about
-numerical agreement in "The verification run" below. Every script is written to
-work on both: where a command differs between GNU and BSD userland, the work is
-done in Python instead, which is already a hard dependency.
+(Apple Silicon) and on **Windows 11**: all 33 experiments complete on all three,
+with the caveat about numerical agreement in "The verification run" below. Every
+script is written to work on all of them: where a command differs between GNU and
+BSD userland, the work is done in Python instead, which is already a hard
+dependency.
 
-**Windows is untested.** The shell scripts assume a POSIX shell, so WSL is the
-path most likely to work, and nobody has confirmed it. If you try it and it
-breaks, that is a gap in this project rather than in your setup.
+**Windows runs natively and does not need WSL.** Run the two shell scripts from
+Git Bash, which ships with Git for Windows; nothing else changes. Two
+Windows-specific details are handled in the code rather than left to you. The
+scripts look for the interpreter in `.venv/Scripts/` as well as `.venv/bin/`,
+because on Windows neither `python` nor `python3` on PATH is the venv's. And
+`src.evaluation` pins a non-interactive matplotlib backend on import: without it
+matplotlib selects TkAgg, whose Tk objects are finalized on a joblib worker
+thread during the classical benchmark and abort the interpreter outright with
+`Tcl_AsyncDelete: async handler deleted by the wrong thread`.
 
 macOS needs one system library that pip cannot provide:
 
@@ -37,7 +44,7 @@ git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
 cd phishing-detection-benchmark
 
 python3.11 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate        # Windows (Git Bash): source .venv/Scripts/activate
 pip install -r requirements.txt
 python scripts/verify_environment.py
 ```
@@ -104,8 +111,11 @@ transfer test, then the final figures. On the reference machine (Linux, i5-7400,
 GTX 1060 3 GB, 16 GB RAM) the whole thing takes about two hours: roughly 40
 minutes for the classical benchmark on CPU, about 7 minutes for deep learning on
 GPU, about 50 minutes for the cross-dataset phase, plus notebook execution.
-Without a CUDA GPU, as on macOS, PyTorch falls back to CPU and the deep learning
-phase takes considerably longer while producing the same values.
+Without a CUDA GPU, as on macOS and on the Windows machine described below,
+PyTorch falls back to CPU. On a modern processor that costs less than it sounds:
+on an i5-14500 the deep learning phase took 42 minutes against the 7-minute GPU
+figure, and the classical benchmark 28 minutes against 40. It does move the
+neural metrics, though, which is the subject of "The verification run".
 
 Metric CSVs and manifests land in `results/`, figures in `plots/final/` at 300
 DPI. Metric values reproduce exactly under seed 42; timing columns vary run to
@@ -195,15 +205,47 @@ with the same shape: cross-dataset F1 landed in 0.30 to 0.49 against the 0.30 to
 lands below 0.5 AUC in one direction, so the observation that its ranking
 partially inverts survives too.
 
-**The cause is not fully isolated, and saying so is part of the result.** For the
-neural models it is clearly the execution path: CUDA on the reference machine
-against CPU here, which is a different set of kernels and a different reduction
-order, not a subtler version of the same computation. For the classical models
-the likely contributor is the linear algebra underneath, since NumPy and
-scikit-learn bind to OpenBLAS on x86 Linux and to Apple's Accelerate framework on
-Apple Silicon. That has not been isolated by controlled experiment here, and a
-0.043 swing in one recall value is larger than a pure accumulation-order argument
-comfortably explains.
+**A third platform turned the suspected cause into a test.** The pipeline was run
+again on 2026-09-01 on Windows 11 (i5-14500, no GPU), natively under Git Bash,
+with every pinned version resolving the same and the same four dataset hashes.
+Windows shares x86-64 and OpenBLAS with the Linux reference but shares neither
+its operating system, its toolchain, nor its execution path for the neural
+models, which makes it close to a controlled test of the explanation below:
+
+| Family | Metrics | Identical | Largest gap | Median gap |
+|---|---|---|---|---|
+| Classical | 90 | 49 (54%) | 0.0120 | 0.0000 |
+| Deep, within-dataset | 15 | 0 | 0.0247 | 0.0047 |
+| Cross-dataset | 60 | 1 (2%) | 0.0505 | 0.0011 |
+
+The two families separate exactly where that explanation says they should. The
+classical family tightened sharply against macOS: the median gap is zero, more
+than half of all 90 metrics come back bit-identical, and the worst case fell from
+0.043 to 0.0120. The neural family, which ran on CPU here just as it did on
+macOS, did not improve at all. Sharing an architecture with the reference helps
+precisely where the linear algebra is implicated, and nowhere else.
+
+Nothing moves on Windows either. Cross-dataset F1 landed in 0.301 to 0.507
+against the 0.301 to 0.520 reported and AUC in 0.403 to 0.624 against 0.453 to
+0.642, while the within-dataset baseline reproduced identically at 0.756 to
+0.938. The same single transfer, CNN-LSTM from malicious_urls to Mendeley, still
+lands below 0.5 AUC. One cross-dataset run, RandomForest from Mendeley to
+malicious_urls, came back bit-identical.
+
+**The cause is now partly isolated, and the remainder is not.** For the neural
+models it was always the execution path: CUDA on the reference machine against
+CPU elsewhere, which is a different set of kernels and a different reduction
+order, not a subtler version of the same computation. Both non-reference
+platforms ran them on CPU and both diverged by a similar amount, which is what
+that account predicts. For the classical models the suspected contributor was the
+linear algebra underneath, since NumPy and scikit-learn bind to OpenBLAS on x86
+Linux and Windows but to Apple's Accelerate framework on Apple Silicon. Windows
+is the closest thing here to a test of that, and the prediction held: same BLAS
+family, gaps collapsing to a median of zero. It is still not a controlled
+experiment, because the OS, the compiler and libm all changed alongside BLAS, so
+the honest claim is that the evidence now favours the explanation rather than
+settling it. A 0.043 swing in one macOS recall value remains larger than a pure
+accumulation-order argument comfortably explains.
 
 What this establishes is narrower and more useful than a single number: a seed
 pins the random choices, not the arithmetic, and bitwise reproducibility is a
