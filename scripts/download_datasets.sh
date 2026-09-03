@@ -28,6 +28,10 @@ mkdir -p "$DATA_DIR"
 if [[ -z "${PYTHON:-}" ]]; then
   if [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
     PYTHON="$REPO_ROOT/.venv/bin/python"
+  elif [[ -x "$REPO_ROOT/.venv/Scripts/python.exe" ]]; then
+    # Windows venv layout (Git Bash): bin/ does not exist and `python3` on PATH
+    # is the WindowsApps stub, which exits 49 instead of running anything.
+    PYTHON="$REPO_ROOT/.venv/Scripts/python.exe"
   else
     PYTHON="python3"
   fi

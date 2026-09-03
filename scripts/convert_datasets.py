@@ -6,6 +6,11 @@ Turns each raw downloaded artifact into a flat CSV under ``data/`` with a stable
 schema, so the rest of the pipeline never has to know about ARFF or SQL dumps.
 
 This is one-time ingestion tooling, invoked by ``scripts/download_datasets.sh``.
+Every converter pins ``lineterminator="\n"`` on ``to_csv``: pandas otherwise
+defaults it to ``os.linesep``, which writes CRLF on Windows and LF everywhere else.
+That is a different byte stream for identical data, so the SHA-256 recorded in
+``data/dataset_hashes.json`` would never match across platforms.
+
 The raw label semantics are preserved verbatim (no remapping) — interpreting and
 normalizing labels is a preprocessing concern (Phase 2), and EDA (Phase 1) needs
 to see the data exactly as published.
@@ -62,7 +67,7 @@ def uci_arff_to_csv(arff_path: Path, out_csv: Path) -> int:
     rows = [ln.split(",") for ln in data_lines]
     df = pd.DataFrame(rows, columns=attrs)
     df = df.apply(pd.to_numeric)  # every column is an integer in {-1, 0, 1}
-    df.to_csv(out_csv, index=False)
+    df.to_csv(out_csv, index=False, lineterminator="\n")
     return len(df)
 
 
@@ -149,7 +154,7 @@ def mendeley_sql_to_csv(sql_path: Path, out_csv: Path) -> int:
     df = pd.DataFrame(rows, columns=_MENDELEY_COLUMNS)
     df["rec_id"] = pd.to_numeric(df["rec_id"], errors="coerce").astype("Int64")
     df["result"] = pd.to_numeric(df["result"], errors="coerce").astype("Int64")
-    df.to_csv(out_csv, index=False)
+    df.to_csv(out_csv, index=False, lineterminator="\n")
     return len(df)
 
 
@@ -176,7 +181,7 @@ def malicious_urls_to_csv(src: Path, out_csv: Path) -> int:
     sub = df[df["type"].isin(_MALICIOUS_KEEP)].copy()
     sub["result"] = sub["type"].map(_MALICIOUS_KEEP).astype(int)
     out = sub[["url", "result"]].dropna(subset=["url"]).reset_index(drop=True)
-    out.to_csv(out_csv, index=False)
+    out.to_csv(out_csv, index=False, lineterminator="\n")
     return len(out)
 
 

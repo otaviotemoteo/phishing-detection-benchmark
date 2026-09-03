@@ -30,8 +30,12 @@ set -u  # Treat unset variables as errors
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+# The venv puts its interpreter in bin/ on POSIX and Scripts/ on Windows, so
+# probe both: on Windows neither `python` nor `python3` on PATH is the venv's.
 if [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
   export PATH="$REPO_ROOT/.venv/bin:$PATH"
+elif [[ -x "$REPO_ROOT/.venv/Scripts/python.exe" ]]; then
+  export PATH="$REPO_ROOT/.venv/Scripts:$PATH"
 fi
 
 echo "============================================================"
