@@ -44,9 +44,9 @@
     "epochs_trained": 13
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/IC/phishing_detection/results/models/CNN-LSTM_mendeley_20260707_141926.pt",
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/CNN-LSTM_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/CNN-LSTM_mendeley.png",
-    "training_curve": "/home/otavio/Desktop/IC/phishing_detection/results/training_curves/CNN-LSTM_mendeley.png"
+    "model_path": "results/models/CNN-LSTM_mendeley_20260707_141926.pt",
+    "confusion_matrix": "results/confusion_matrices/CNN-LSTM_mendeley.png",
+    "roc_curve": "results/roc_curves/CNN-LSTM_mendeley.png",
+    "training_curve": "results/training_curves/CNN-LSTM_mendeley.png"
   }
 }

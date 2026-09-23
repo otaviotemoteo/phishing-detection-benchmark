@@ -52,7 +52,7 @@
     "train_n": 80000
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/RandomForest_malicious_urls_to_malicious_urls.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/RandomForest_malicious_urls_to_malicious_urls.png"
+    "confusion_matrix": "results/confusion_matrices/RandomForest_malicious_urls_to_malicious_urls.png",
+    "roc_curve": "results/roc_curves/RandomForest_malicious_urls_to_malicious_urls.png"
   }
 }

@@ -38,7 +38,7 @@
     "inference_time_ms_per_sample": 0.026205
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/CNN-LSTM_malicious_urls_to_malicious_urls.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/CNN-LSTM_malicious_urls_to_malicious_urls.png"
+    "confusion_matrix": "results/confusion_matrices/CNN-LSTM_malicious_urls_to_malicious_urls.png",
+    "roc_curve": "results/roc_curves/CNN-LSTM_malicious_urls_to_malicious_urls.png"
   }
 }

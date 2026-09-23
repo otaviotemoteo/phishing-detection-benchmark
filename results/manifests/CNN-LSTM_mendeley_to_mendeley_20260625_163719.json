@@ -38,7 +38,7 @@
     "inference_time_ms_per_sample": 0.031307
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/CNN-LSTM_mendeley_to_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/CNN-LSTM_mendeley_to_mendeley.png"
+    "confusion_matrix": "results/confusion_matrices/CNN-LSTM_mendeley_to_mendeley.png",
+    "roc_curve": "results/roc_curves/CNN-LSTM_mendeley_to_mendeley.png"
   }
 }

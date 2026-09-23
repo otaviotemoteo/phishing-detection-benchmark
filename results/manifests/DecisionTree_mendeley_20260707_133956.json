@@ -51,9 +51,9 @@
     "n_parameters": null
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/IC/phishing_detection/results/models/DecisionTree_mendeley_20260707_133956.joblib",
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/DecisionTree_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/DecisionTree_mendeley.png",
-    "feature_importance": "/home/otavio/Desktop/IC/phishing_detection/plots/feature_importance/DecisionTree_mendeley.png"
+    "model_path": "results/models/DecisionTree_mendeley_20260707_133956.joblib",
+    "confusion_matrix": "results/confusion_matrices/DecisionTree_mendeley.png",
+    "roc_curve": "results/roc_curves/DecisionTree_mendeley.png",
+    "feature_importance": "plots/feature_importance/DecisionTree_mendeley.png"
   }
 }

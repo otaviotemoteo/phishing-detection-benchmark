@@ -72,8 +72,8 @@
     "train_n": 56000
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/XGBoost_mendeley_to_malicious_urls.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/XGBoost_mendeley_to_malicious_urls.png",
-    "model_path": "/home/otavio/Desktop/IC/phishing_detection/results/models/XGBoost_mendeley_to_malicious_urls_20260707_145013.joblib"
+    "confusion_matrix": "results/confusion_matrices/XGBoost_mendeley_to_malicious_urls.png",
+    "roc_curve": "results/roc_curves/XGBoost_mendeley_to_malicious_urls.png",
+    "model_path": "results/models/XGBoost_mendeley_to_malicious_urls_20260707_145013.joblib"
   }
 }

@@ -52,8 +52,8 @@
     "train_n": 56000
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/RandomForest_mendeley_to_malicious_urls.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/RandomForest_mendeley_to_malicious_urls.png",
-    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/RandomForest_mendeley_to_malicious_urls_20260625_155215.joblib"
+    "confusion_matrix": "results/confusion_matrices/RandomForest_mendeley_to_malicious_urls.png",
+    "roc_curve": "results/roc_curves/RandomForest_mendeley_to_malicious_urls.png",
+    "model_path": "results/models/RandomForest_mendeley_to_malicious_urls_20260625_155215.joblib"
   }
 }

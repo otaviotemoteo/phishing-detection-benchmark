@@ -52,7 +52,7 @@
     "train_n": 56000
   },
   "artifacts": {
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/RandomForest_mendeley_to_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/RandomForest_mendeley_to_mendeley.png"
+    "confusion_matrix": "results/confusion_matrices/RandomForest_mendeley_to_mendeley.png",
+    "roc_curve": "results/roc_curves/RandomForest_mendeley_to_mendeley.png"
   }
 }

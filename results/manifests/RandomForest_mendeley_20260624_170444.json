@@ -57,9 +57,9 @@
     "n_parameters": null
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/RandomForest_mendeley_20260624_170444.joblib",
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/RandomForest_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/RandomForest_mendeley.png",
-    "feature_importance": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/plots/feature_importance/RandomForest_mendeley.png"
+    "model_path": "results/models/RandomForest_mendeley_20260624_170444.joblib",
+    "confusion_matrix": "results/confusion_matrices/RandomForest_mendeley.png",
+    "roc_curve": "results/roc_curves/RandomForest_mendeley.png",
+    "feature_importance": "plots/feature_importance/RandomForest_mendeley.png"
   }
 }

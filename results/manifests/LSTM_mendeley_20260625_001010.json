@@ -44,9 +44,9 @@
     "epochs_trained": 15
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/LSTM_mendeley_20260625_001010.pt",
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/LSTM_mendeley.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/LSTM_mendeley.png",
-    "training_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/training_curves/LSTM_mendeley.png"
+    "model_path": "results/models/LSTM_mendeley_20260625_001010.pt",
+    "confusion_matrix": "results/confusion_matrices/LSTM_mendeley.png",
+    "roc_curve": "results/roc_curves/LSTM_mendeley.png",
+    "training_curve": "results/training_curves/LSTM_mendeley.png"
   }
 }

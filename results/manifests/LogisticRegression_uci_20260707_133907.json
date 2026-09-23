@@ -53,8 +53,8 @@
     "n_parameters": null
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/IC/phishing_detection/results/models/LogisticRegression_uci_20260707_133907.joblib",
-    "confusion_matrix": "/home/otavio/Desktop/IC/phishing_detection/results/confusion_matrices/LogisticRegression_uci.png",
-    "roc_curve": "/home/otavio/Desktop/IC/phishing_detection/results/roc_curves/LogisticRegression_uci.png"
+    "model_path": "results/models/LogisticRegression_uci_20260707_133907.joblib",
+    "confusion_matrix": "results/confusion_matrices/LogisticRegression_uci.png",
+    "roc_curve": "results/roc_curves/LogisticRegression_uci.png"
   }
 }

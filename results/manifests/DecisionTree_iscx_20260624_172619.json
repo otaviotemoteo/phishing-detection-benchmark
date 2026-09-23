@@ -51,9 +51,9 @@
     "n_parameters": null
   },
   "artifacts": {
-    "model_path": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/models/DecisionTree_iscx_20260624_172619.joblib",
-    "confusion_matrix": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/confusion_matrices/DecisionTree_iscx.png",
-    "roc_curve": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/results/roc_curves/DecisionTree_iscx.png",
-    "feature_importance": "/home/otavio/Desktop/projetos/faculdade/phishing_detection/plots/feature_importance/DecisionTree_iscx.png"
+    "model_path": "results/models/DecisionTree_iscx_20260624_172619.joblib",
+    "confusion_matrix": "results/confusion_matrices/DecisionTree_iscx.png",
+    "roc_curve": "results/roc_curves/DecisionTree_iscx.png",
+    "feature_importance": "plots/feature_importance/DecisionTree_iscx.png"
   }
 }
