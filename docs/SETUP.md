@@ -77,7 +77,7 @@ document you read before you have an environment to run it in.
 | Profile | BLAS behind NumPy | PyTorch backend | What to expect from the numbers |
 |---|---|---|---|
 | `linux-x86_64-cuda` | OpenBLAS, x86-64 build | CUDA | The reference platform. Metric values reproduce exactly |
-| `macos-arm64-mps` | whatever the arm64 wheel links, printed by the script | MPS | Classical models agree to about the third decimal; neural models diverge in the last decimals |
+| `macos-arm64-mps` | OpenBLAS, arm64 build | MPS | Classical models agree to about the third decimal; neural models diverge in the last decimals |
 | `windows-x86_64-cpu` | OpenBLAS, x86-64 build | CPU | All 33 experiments complete (2026-09-01, i5-14500). Classical metrics agree most closely of the three; the neural phases run on CPU and are slower |
 
 Verified end to end on all three. The manifests committed here come from the
@@ -283,15 +283,34 @@ models it was always the execution path: CUDA on the reference machine against
 CPU elsewhere, which is a different set of kernels and a different reduction
 order, not a subtler version of the same computation. Both non-reference
 platforms ran them on CPU and both diverged by a similar amount, which is what
-that account predicts. For the classical models the suspected contributor was the
-linear algebra underneath, since NumPy and scikit-learn bind to OpenBLAS on x86
-Linux and Windows but to Apple's Accelerate framework on Apple Silicon. Windows
-is the closest thing here to a test of that, and the prediction held: same BLAS
-family, gaps collapsing to a median of zero. It is still not a controlled
-experiment, because the OS, the compiler and libm all changed alongside BLAS, so
-the honest claim is that the evidence now favours the explanation rather than
-settling it. A 0.043 swing in one macOS recall value remains larger than a pure
-accumulation-order argument comfortably explains.
+that account predicts.
+
+For the classical models the suspected contributor was the linear algebra
+underneath, and the shape of that suspicion had to be corrected. All three
+platforms run the same BLAS library: under the pinned `numpy==1.26.4`, the PyPI
+wheel bundles OpenBLAS on Linux, on Windows and on Apple Silicon alike. NumPy
+only began shipping Accelerate-linked wheels in 2.0, and only for macOS 14 and
+newer, which the pin excludes. What separates macOS from the other two is
+therefore not the library but the build: an arm64 OpenBLAS with ARM kernels and
+its own threading against the x86-64 build Linux and Windows share.
+
+Windows is the closest thing here to a test of that, and the prediction held:
+same architecture as the reference, gaps collapsing to a median of zero, while
+macOS, on a different architecture, stayed an order of magnitude further away.
+The corrected account is the tighter one. Two different libraries can differ in
+any number of ways; one library built for two instruction sets differs in the
+kernels selected and in the order operations are reduced, which is exactly the
+kind of difference that moves a final decimal and leaves a conclusion standing.
+
+It is still not a controlled experiment, because the OS, the compiler and libm
+all changed alongside the BLAS build, so the honest claim is that the evidence
+now favours the explanation rather than settling it. A 0.043 swing in one macOS
+recall value remains larger than a pure accumulation-order argument comfortably
+explains.
+
+The BLAS backend is not taken on trust anywhere: `scripts/verify_environment.py`
+reads it from `numpy.__config__` and prints it in the platform header, so each of
+the three runs reports its own.
 
 What this establishes is narrower and more useful than a single number: a seed
 pins the random choices, not the arithmetic, and bitwise reproducibility is a

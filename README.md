@@ -115,11 +115,13 @@ The full tables, every figure, and the interpretation are in
   not, and the gap is uneven: the tree models still agree to the third decimal,
   the neural ones move by up to 0.074, and the ones that move are exactly the
   ones that trained on a GPU there and on a CPU here. Adding Windows as a third
-  platform turned that observation into a test it could have failed. Sharing
-  x86-64 and OpenBLAS with Linux, its classical runs tightened to a median gap
-  of zero with 54% of metrics bit-identical, while its neural runs, on CPU like
-  macOS's, moved just as much as macOS's did. The divergence tracks its cause,
-  not the operating system. Every conclusion survives on all three and no single
+  platform turned that observation into a test it could have failed. All three
+  run the same BLAS library under the pinned NumPy, so the variable is the build:
+  sharing Linux's x86-64 one, Windows tightened to a median gap of zero with 54%
+  of classical metrics bit-identical, while Apple Silicon's arm64 build stayed an
+  order of magnitude further out and its neural runs, on CPU like macOS's, moved
+  just as much as macOS's did. The divergence tracks its cause, not the operating
+  system. Every conclusion survives on all three and no single
   digit does. Bitwise reproducibility is a property of a platform, not of a
   pipeline, and saying so is more useful than a claim that quietly fails on
   somebody else's laptop.
