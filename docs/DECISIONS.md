@@ -765,3 +765,78 @@ notebook was re-executed.
 - `notebooks/06_comparisons.ipynb`; `results/` is untouched
 
 ---
+
+## D-016: URL scheme normalization stays case sensitive
+
+**Date:** 2026-09-23
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+`normalize_url_scheme` (D-010) strips a leading scheme with the pattern
+`^https?://`, which is case sensitive. A URL written `HTTP://example.com` keeps
+its scheme, and so enters feature extraction with a larger `url_length`, a
+different `n_special`, and `has_https = 0` where the lowercase form would give
+1. The same URL therefore gets slightly different lexical features depending on
+how its scheme happens to be capitalized.
+
+The behaviour was found during the repository audit and measured before anything
+was decided. Counting URLs whose scheme is uppercase or mixed case but not
+lowercase, over the exact files recorded in `data/dataset_hashes.json`:
+
+| Corpus | Affected | Total |
+|---|---|---|
+| `mendeley_phishing.csv` | 1 | 80,000 |
+| `malicious_urls.csv` | 0 | 522,214 |
+
+One URL in 602,214, all of it on the training side of a single corpus.
+
+### Decision
+
+Leave the pattern as it is. Pin the current behaviour in
+`tests/test_url_normalization.py`, including an explicit test that an uppercase
+scheme is **not** stripped, so the day someone relaxes the pattern the suite
+fails on purpose instead of the numbers moving quietly.
+
+The gap is recorded here and in the limitations of the written work rather than
+repaired in place.
+
+### Alternatives considered
+
+- **Make the pattern case insensitive now** (`(?i)^https?://`): rejected. It
+  changes the lexical feature matrix, so every cross-dataset number in
+  `results/metrics_crossdataset.csv` would have to be regenerated to stay
+  consistent with the code that produced it. One URL in 602,214 does not justify
+  invalidating 33 published experiments.
+- **Fix it and re-run only the affected experiments:** rejected for the same
+  reason, with the added problem that a partially regenerated results directory
+  is worse than a consistent one with a documented quirk.
+- **Fix it silently in a future run:** rejected outright. That would move
+  published numbers without a record of why.
+
+### Consequences
+
+- One Mendeley URL is represented with marginally wrong features in every
+  experiment that reads that corpus. At 1 in 80,000 it cannot move a metric at
+  the precision reported (four decimals), but the statement that it is a known
+  imperfection belongs in the limitations rather than in nobody's notes.
+- `malicious_urls` is unaffected, so the cross-dataset comparison is not
+  asymmetric in this respect.
+- Whoever relaxes the pattern inherits the obligation to regenerate the results
+  and supersede this record.
+
+### References
+
+- `src/data/feature_engineering.py` (`normalize_url_scheme`),
+  `tests/test_url_normalization.py`, D-010
+- Counts reproducible with:
+  ```python
+  import pandas as pd
+  for name in ("mendeley_phishing.csv", "malicious_urls.csv"):
+      urls = pd.read_csv(f"data/{name}")["url"].astype(str)
+      upper = urls.str.match(r"^(?i:https?)://") & ~urls.str.match(r"^https?://")
+      print(name, int(upper.sum()), "of", len(urls))
+  ```
+
+---
