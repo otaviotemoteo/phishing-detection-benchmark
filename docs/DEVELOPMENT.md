@@ -95,17 +95,21 @@ assert not X_train.isnull().any().any(), "NaN values found in training data"
 | imbalanced-learn | 0.12.4 | SMOTE |
 | xgboost | 2.1.1 | XGBoost classifier |
 | catboost | 1.2.7 | CatBoost classifier |
-| lightgbm | 4.5.0 | LightGBM classifier (optional, for comparison) |
-| torch | 2.4.1+cu121 | Deep learning (CNN, LSTM, Transformers) |
-| transformers | 4.45.2 | Hugging Face — DistilBERT |
-| datasets | 3.0.1 | Hugging Face — dataset loading |
+| torch | 2.4.1+cu121 | Deep learning (CNN, LSTM, CNN-LSTM) |
 | matplotlib | 3.9.2 | Plotting |
 | seaborn | 0.13.2 | Statistical plots |
 | psutil | 6.0.0 | RAM monitoring |
 | py3nvml | 0.2.7 | GPU memory monitoring |
 | mlflow | 2.16.2 | Experiment tracking |
 | joblib | 1.4.2 | Model serialization |
-| tqdm | 4.66.5 | Progress bars |
+| pytest | 8.3.3 | Invariant tests (`tests/`) |
+| ruff / black | 0.6.9 / 24.10.0 | Lint and format |
+
+**Removed during the repository audit** (declared but never imported):
+`lightgbm`, `torchvision`, `tqdm`, and the Hugging Face stack `transformers`,
+`datasets`, `tokenizers`, `accelerate`, which existed for the transformer phase
+that was dropped in D-009. `scipy`, `pyyaml` and the notebook stack stay: they
+are backends that other pinned packages or `run_all.sh` depend on. See D-012.
 
 ### 2.2 Stack decisions
 
@@ -143,12 +147,15 @@ python -c "import torch; print(torch.cuda.is_available(), torch.version.cuda)"
 phishing-detection-benchmark/
 │
 ├── README.md                          # User-facing readme (how to reproduce)
+├── LICENSE                            # MIT (D-011)
+├── CITATION.cff                       # Machine-readable citation metadata
 ├── DEVELOPMENT.md                     # This file
 ├── DECISIONS.md                       # Architecture Decision Records
 ├── EXPERIMENT_LOG.md                  # Daily experiment log
 ├── requirements.txt                   # Pinned dependencies
 ├── .gitignore
 ├── .python-version                    # 3.11.x
+├── .github/workflows/ci.yml           # Lint, compile, tests, results checksum
 │
 ├── data/                              # Raw datasets (gitignored)
 │   ├── uci_phishing.csv
@@ -187,15 +194,26 @@ phishing-detection-benchmark/
 │   │   └── run_classical|deep|cross.py  # CLI orchestrators
 │   └── utils/
 │       ├── seeds.py                   # Centralized seed management
-│       ├── manifests.py               # Experiment manifest generation
+│       ├── manifests.py               # Manifest generation and reading
+│       ├── environment.py             # Platform detection and profile labels (D-014)
 │       └── io.py                      # Hashing, metrics-CSV upsert, filenames
+│
+├── tests/                             # Invariant tests (synthetic data, seconds)
+│   ├── test_split_integrity.py
+│   ├── test_no_leakage.py
+│   ├── test_url_normalization.py
+│   ├── test_metrics_consistency.py
+│   ├── test_environment_profile.py
+│   └── test_compare_platforms.py
 │
 ├── results/                           # All experiment outputs (gitignored except CSVs/manifests)
 │   ├── metrics_ml.csv                 # Classical ML results
 │   ├── metrics_dl.csv                 # Deep Learning results
 │   ├── metrics_crossdataset.csv       # Cross-dataset generalization
 │   │                                  # (no metrics_transformers.csv — Phase 5 skipped, D-009)
+│   ├── CHECKSUMS.txt                  # SHA-256 of the three tables above
 │   ├── manifests/                     # JSON manifest per experiment
+│   ├── analysis/                      # Artifacts derived after the experiment
 │   ├── models/                        # Saved model artifacts (joblib, .pt)
 │   ├── confusion_matrices/
 │   ├── roc_curves/
@@ -212,7 +230,9 @@ phishing-detection-benchmark/
     ├── download_datasets.sh
     ├── convert_datasets.py            # Raw artifact -> flat CSV converters
     ├── run_all.sh                     # Full pipeline reproduction
-    └── verify_environment.py          # Sanity check for setup
+    ├── migrate_manifests.py           # Absolute -> repo-relative artifact paths
+    ├── compare_platforms.py           # Cross-platform metric comparison
+    └── verify_environment.py          # Platform identification + setup checks
 ```
 
 ### 3.1 Why src/ exists in addition to notebooks/
@@ -549,6 +569,16 @@ Every model trained must produce a JSON manifest:
     "sklearn": "1.5.2",
     "numpy": "1.26.4"
   },
+  "environment": {
+    "os": {"system": "Linux", "release": "6.17.0"},
+    "arch": "x86_64",
+    "python_impl": "CPython",
+    "cpu": "x86_64",
+    "blas": "openblas",
+    "gpu_name": "NVIDIA GeForce GTX 1060 3GB",
+    "torch_backend": "cuda",
+    "profile": "linux-x86_64-cuda"
+  },
   "metrics": {
     "accuracy": 0.974,
     "precision": 0.971,
@@ -570,6 +600,94 @@ Every model trained must produce a JSON manifest:
   }
 }
 ```
+
+### 6.5 Platform recording
+
+A seed pins the random choices, not the arithmetic. The same code on a different
+operating system, architecture, BLAS build or compute backend produces the same
+conclusions and not the same digits, so the platform is part of what a result
+means and is recorded with it.
+
+`src/utils/environment.py` is the single source of truth for that. Its
+`detect_environment()` returns the operating system, architecture, Python
+implementation, processor, BLAS backend, GPU name and PyTorch backend, and
+reduces them to one `profile` label: `linux-x86_64-cuda` (the reference
+platform), `macos-arm64-mps`, `windows-x86_64-cpu`, or `unsupported` for any
+other combination, which is a signal and not an error. Three callers use it and
+none of them reimplements it: `save_manifest` (the `environment` block above),
+`scripts/verify_environment.py` (the platform header and its guidance blocks),
+and `scripts/compare_platforms.py` (the platform column).
+
+The 66 manifests committed before the block existed will never have one, because
+they record real runs that are not going to be repeated. Read a manifest's
+platform through `manifest_environment(manifest)`, which returns the recorded
+block with `inferred: False`, or the reference profile with `inferred: True` and
+a note explaining that it comes from the repository history rather than from the
+manifest. Never treat the inferred value as a measurement.
+
+### 6.6 Auditing tools
+
+**`scripts/verify_environment.py`** — the first command anyone runs. Identifies
+the platform, prints the guidance for that profile, then checks the interpreter,
+the pinned versions, the compute backend, the directory structure, write
+permissions, the dataset hashes and the integrity of the three result tables
+against `results/CHECKSUMS.txt`. Exits 0 on success, 1 on failure; an untested
+platform warns and still exits 0. `PHISHBENCH_PROFILE=<profile>` prints another
+profile's guidance block without changing what is detected or checked.
+
+**`scripts/migrate_manifests.py`** — rewrites absolute artifact paths in
+manifests to repository-relative ones. Touches the `artifacts` block and nothing
+else; `--dry-run` reports without writing. It has already been applied to the 66
+committed manifests and is kept for any manifest set imported from elsewhere.
+
+**`scripts/compare_platforms.py`** — reads one or more manifest directories,
+groups them by run (model and dataset, timestamp stripped), and for every run
+present on more than one platform writes each platform's metrics and the largest
+absolute gap per metric to `results/analysis/platform_comparison.csv`.
+
+```bash
+python scripts/compare_platforms.py                                    # results/manifests/
+python scripts/compare_platforms.py results/manifests results/manifests_macos
+python scripts/compare_platforms.py DIR_A DIR_B --out path/to/out.csv
+```
+
+With a single platform in the manifests it prints that there is nothing to
+compare and exits 0, which is the current state of this repository: every
+committed manifest comes from the reference Linux machine. The comparison can be
+produced as soon as the macOS and Windows manifests are committed.
+
+### 6.7 Invariant tests
+
+`tests/` checks the methodological guarantees the results depend on, not the
+models themselves. Every test uses small synthetic data, none touches a real
+dataset, and none re-runs an experiment, so the suite finishes in seconds and is
+safe to run at any time.
+
+| File | What it pins |
+|---|---|
+| `test_split_integrity.py` | 70/15/15 split: disjoint sets, correct proportions, preserved class balance, identical under the same seed |
+| `test_no_leakage.py` | SMOTE inside the imblearn pipeline and before the classifier, scaler fitted on training rows only, validation and test never resampled |
+| `test_url_normalization.py` | The D-010 scheme normalization, pinned exactly as implemented, including the case-sensitivity gap |
+| `test_metrics_consistency.py` | Every published row has a manifest and agrees with it within rounding; 18/3/12 rows; metrics in [0, 1]; no absolute paths |
+| `test_environment_profile.py` | Profile detection for the three real platforms, `unsupported` for anything else, and the manifest reader's tolerance for manifests with no `environment` block |
+| `test_compare_platforms.py` | The comparison tool on synthetic two-platform manifests, including the single-platform case that must not fail |
+
+```bash
+pytest tests/ -v
+```
+
+A failing test is a finding about the repository, not a test to be adjusted.
+Before changing production code to make one pass, confirm the change cannot move
+any number in `results/`.
+
+### 6.8 Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request: lint with ruff,
+compile every module, run the test suite, and verify the three result tables
+against `results/CHECKSUMS.txt`. It installs only the pinned subset the tests
+import, reading the pins out of `requirements.txt` so the two cannot drift, and
+never downloads a dataset or trains a model. The whole job finishes in well
+under a minute.
 
 ---
 

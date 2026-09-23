@@ -492,3 +492,276 @@ AUC 0.545) for **formatting** reasons, not phishing.
 - `src/experiments/runner_cross.py`; scheme diagnostic in `notebooks/05_crossdataset.ipynb`
 
 ---
+
+## D-011: MIT License and CITATION.cff
+
+**Date:** 2026-09-22
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+`README.md` stated that the code was MIT-licensed, but no `LICENSE` file existed.
+Without one, the repository is legally "all rights reserved" by default: the
+README's claim has no effect, and nobody can reuse the code even though the whole
+point of publishing it is that they can. There was also no canonical way to cite
+the work, so anyone referencing it had to invent a format.
+
+The repository is public and is the basis for submissions to a conference and a
+journal, both of which expect a license and a citation entry.
+
+### Decision
+
+Add `LICENSE` with the full MIT text, `Copyright (c) 2026 Otávio Temoteo`, and
+`CITATION.cff` (Citation File Format 1.2.0) with title, author, license,
+repository URL, abstract, keywords and the last commit date as `date-released`.
+The README gained an explicit license section pointing at the file and a "How to
+cite" section with the reference and a BibTeX block.
+
+The license covers the code only. The datasets are not redistributed here and
+keep their original licenses, which `data/README.md` lists.
+
+### Alternatives considered
+
+- **Apache 2.0:** rejected. Its patent grant solves a problem this project does
+  not have, and MIT is what the README already promised.
+- **CC BY 4.0 for everything:** rejected. It is a content license, awkward for
+  source code, and it would contradict the README.
+- **No license, decide later:** rejected. That is the status quo, and the status
+  quo silently forbids exactly the reuse the project is asking for.
+
+### Consequences
+
+- The README's claim is now true, and third parties can legally use the code.
+- GitHub and Zenodo can both read the metadata, so a DOI is one step away if the
+  journal submission wants one.
+- `date-released` has to be updated when a release is cut, otherwise it drifts
+  behind the repository.
+
+### References
+
+- `LICENSE`, `CITATION.cff`, `README.md` (License, How to cite)
+
+---
+
+## D-012: requirements.txt declares only what the code imports
+
+**Date:** 2026-09-22
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+`requirements.txt` pinned several packages that no module, script or notebook
+imports: `lightgbm`, `torchvision`, `tqdm`, and the Hugging Face stack
+(`transformers`, `datasets`, `tokenizers`, `accelerate`). The Hugging Face
+packages were there for the transformer phase dropped in D-009; the other three
+were never used at all.
+
+The cost is not hypothetical. Those pins add gigabytes to a clean install, widen
+the surface where a reproduction attempt can fail on an unrelated wheel, and tell
+a reviewer that the project uses techniques it does not use.
+
+### Decision
+
+Remove the seven unused pins. Keep `scipy` and `pyyaml`, which are not imported
+directly but are backends that scikit-learn and MLflow require, and keep the
+notebook stack (`jupyter`, `ipykernel`, `ipywidgets`), which `run_all.sh` needs
+to execute the notebooks through nbconvert. Add `pytest`, now that `tests/`
+exists. Every pin stays exact (`==`).
+
+`scripts/verify_environment.py` was updated to match: it no longer checks for
+`transformers` or `lightgbm`, and it does check `scipy`.
+
+### Alternatives considered
+
+- **Keep everything, on the grounds that the dissertation mentions transformers:**
+  rejected. D-009 records that the phase was dropped; the dissertation says so,
+  and an unused dependency does not make a dropped phase more present.
+- **Split into `requirements.txt` plus `requirements-dev.txt`:** rejected as
+  unnecessary for a project of this size. The lint and test tools are small.
+- **Loosen the pins to reduce install failures:** rejected outright. Pinning is
+  the reproducibility argument; a `>=` contradicts it.
+
+### Consequences
+
+- A clean install is several gigabytes smaller and has fewer ways to fail.
+- No pipeline behaviour changes: nothing imported any of the removed packages, so
+  no number in `results/` is affected.
+- Reviving the transformer phase means restoring the four Hugging Face pins, with
+  a new decision record superseding D-009.
+
+### References
+
+- `requirements.txt`, `scripts/verify_environment.py`, D-009
+
+---
+
+## D-013: Manifests record the platform; existing manifests are never rewritten
+
+**Date:** 2026-09-22
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+Two problems with the 66 manifests in `results/manifests/`.
+
+First, every `artifacts` path was absolute on the author's machine
+(`/home/<user>/.../phishing_detection/results/models/...`). That exposes a local
+directory layout and is useless to anyone who clones the repository.
+
+Second, the manifests record library versions but not the platform: no operating
+system, architecture, BLAS backend or GPU. The reproducibility argument states
+that cross-platform divergence is explained by the linear algebra backend and by
+GPU against CPU execution. Without the platform in the manifest, that explanation
+cannot be checked from the artifacts, which is exactly what the artifacts exist
+for.
+
+### Decision
+
+1. Rewrite absolute artifact paths to repository-relative ones with
+   `scripts/migrate_manifests.py`, which touches the `artifacts` block and
+   nothing else. Metrics, cost, hyperparameters, dataset hash, git commit, seed
+   and timestamp are left byte for byte as they were, and the migration was
+   verified by diffing every manifest with `artifacts` removed.
+2. Record an `environment` block in manifests written from now on, from
+   `src/utils/environment.detect_environment()`.
+3. **Do not regenerate the 66 existing manifests.** They record runs that
+   happened; re-running them to add a field would replace measurements with new
+   measurements.
+4. Read the platform through `manifest_environment()`, which marks an absent
+   block as `inferred: True` with the reference profile and a note saying the
+   value comes from the repository history rather than from the manifest.
+
+### Alternatives considered
+
+- **Re-run the pipeline so every manifest has the block:** rejected. It would
+  produce new numbers, and the committed numbers are the ones the dissertation
+  cites.
+- **Backfill the block into the old manifests from what we believe the platform
+  was:** rejected. It would write an inference into a file whose entire purpose
+  is to record what was measured, and nothing downstream could tell the two
+  apart afterwards.
+- **Leave the absolute paths:** rejected. They leak a local layout and mislead
+  anyone who tries to follow them.
+
+### Consequences
+
+- Manifests are portable, and `results/models/...` resolves from any clone.
+- Cross-platform comparison becomes verifiable from the artifacts, for runs made
+  from now on.
+- Readers must go through `manifest_environment()` rather than
+  `manifest["environment"]`, or they will crash on the older files.
+
+### References
+
+- `scripts/migrate_manifests.py`, `src/utils/environment.py`,
+  `src/utils/manifests.py`, `tests/test_environment_profile.py`
+
+---
+
+## D-014: Platform profiles, detected once and reported by the environment check
+
+**Date:** 2026-09-22
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+The project behaves in three different ways depending on where it runs: CUDA on
+the reference Linux machine, MPS on Apple Silicon, CPU on Windows. Each has
+different prerequisites, different runtimes and a different expectation about
+how closely the numbers will match the published ones. None of that was written
+anywhere a newcomer would find it before spending two hours on a run.
+
+`scripts/verify_environment.py` already ran first, and already knew how to
+inspect the environment, but when a check failed it only reported the failure.
+
+### Decision
+
+Add `src/utils/environment.py` as the single source of truth about the platform.
+`detect_environment()` reports operating system, architecture, Python
+implementation, processor, BLAS backend, GPU name and PyTorch backend, and
+`derive_profile()` reduces them to one label: `linux-x86_64-cuda`,
+`macos-arm64-mps`, `windows-x86_64-cpu`, or `unsupported`.
+
+`verify_environment.py` prints the detected platform and the guidance block for
+its profile before running its checks, and every failing check now prints the
+command that fixes it, for the detected platform rather than a list of
+alternatives. It also checks the three result tables against
+`results/CHECKSUMS.txt` and their expected row counts. `unsupported` warns and
+still exits 0, because an untested platform is not a broken one.
+
+The guidance text lives only in the script. The README points at it and
+`docs/SETUP.md` carries a short table instead of the full text, because that is
+the document people read before they have an environment to run the script in.
+
+### Alternatives considered
+
+- **Document the three platforms in the README:** rejected as the only mechanism.
+  Prose in a README is not read at the moment it matters and drifts from the code.
+  A short table in SETUP.md is the one duplication kept, deliberately.
+- **Detect the platform separately in each place that needs it:** rejected. Three
+  copies of the same logic drift, and the profile would eventually disagree with
+  itself between the manifest and the checker.
+- **Fail on an untested platform:** rejected. The pipeline very likely runs; what
+  is missing is a baseline to compare against, which is a warning.
+
+### Consequences
+
+- A newcomer learns the shape of their run from the first command, not from a
+  failure an hour in.
+- The profile label is shared by the manifest, the environment check and the
+  cross-platform comparison, so the three cannot disagree.
+- New platforms need a new profile and a new guidance block, otherwise they fall
+  into `unsupported`. That is the intended failure mode.
+
+### References
+
+- `src/utils/environment.py`, `scripts/verify_environment.py`,
+  `scripts/compare_platforms.py`, `docs/SETUP.md`, D-013
+
+---
+
+## D-015: Notebook outputs are kept; only leaked paths were removed
+
+**Date:** 2026-09-22
+**Status:** Accepted
+**Phase:** Repository audit
+
+### Context
+
+The five notebooks carry their outputs, which is most of their 5.4 MB. Stored
+outputs make the clone heavier and the diffs unreadable, and one of them,
+`06_comparisons.ipynb`, contained three captured `stderr` warnings that printed
+an absolute path on the author's machine.
+
+### Decision
+
+Keep the outputs. Remove only the three `stderr` warning outputs that carried the
+absolute path, leaving every figure, table and printed result in place. No
+notebook was re-executed.
+
+### Alternatives considered
+
+- **Strip every output and document how to regenerate them:** rejected. The
+  notebooks are the narrative layer: a reviewer who cannot run a two-hour
+  pipeline still sees what came out. Regenerating them later would also redraw
+  figures that are currently byte-stable.
+- **Re-run `06_comparisons.ipynb` to produce clean outputs:** rejected. Executing
+  it regenerates figures and recomputes predictions, which is exactly the kind of
+  change this audit is not allowed to make.
+
+### Consequences
+
+- The repository stays heavier than a stripped one, deliberately.
+- No absolute path remains anywhere in the repository.
+- The outputs correspond to the committed results and to no later run, which is
+  the property worth having.
+
+### References
+
+- `notebooks/06_comparisons.ipynb`; `results/` is untouched
+
+---

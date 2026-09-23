@@ -39,6 +39,13 @@ and does not exist on macOS by default. Without it, importing xgboost fails with
 `Library not loaded: @rpath/libomp.dylib` and takes the environment check down
 with it.
 
+`requirements.txt` declares only what the code imports, each pinned with `==`.
+The Hugging Face stack (`transformers`, `datasets`, `tokenizers`, `accelerate`),
+`torchvision`, `lightgbm` and `tqdm` were declared but never imported, and were
+removed during the repository audit: the transformer phase was dropped (D-009)
+and the other three were never used. Nothing in the pipeline changed, and the
+install is several gigabytes smaller.
+
 ```bash
 git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
 cd phishing-detection-benchmark
@@ -49,13 +56,36 @@ pip install -r requirements.txt
 python scripts/verify_environment.py
 ```
 
-`verify_environment.py` checks the interpreter and the installed versions
-against the pins in `requirements.txt`. Run it before anything else: a pipeline
-that half-works on a mismatched library still writes numbers to `results/`, and
-those numbers are worse than a crash because they look fine.
+`verify_environment.py` runs before anything else, and does two things. It
+identifies the platform (operating system, architecture, BLAS backend, PyTorch
+backend) and prints what that platform means for your run. Then it checks the
+interpreter, the pinned versions, the directory structure, the dataset hashes
+and the integrity of the three result tables, printing the exact fix under
+anything that fails. A pipeline that half-works on a mismatched library still
+writes numbers to `results/`, and those numbers are worse than a crash because
+they look fine.
+
+It exits 0 when everything passes and 1 when something fails. A platform outside
+the three below is a warning, not a failure.
+
+### The three platform profiles
+
+The script reduces the platform to one label, and that label is what decides
+what to expect. The table repeats what the script prints, because this is the
+document you read before you have an environment to run it in.
+
+| Profile | BLAS behind NumPy | PyTorch backend | What to expect from the numbers |
+|---|---|---|---|
+| `linux-x86_64-cuda` | OpenBLAS (x86-64 build) | CUDA | The reference platform. Metric values reproduce exactly |
+| `macos-arm64-mps` | whatever the arm64 wheel links, printed by the script | MPS | Classical models agree to about the third decimal; neural models diverge in the last decimals |
+| `windows-x86_64-cpu` | OpenBLAS (x86-64 build) | CPU | Not verified end to end here. The neural phases are substantially slower on CPU and there is no committed Windows baseline to compare against |
+
+Anything else is labelled `unsupported`: the pipeline should still run, but no
+baseline exists for it, so a numerical difference cannot be attributed.
 
 A GPU is optional. PyTorch falls back to CPU for the deep learning phase, which
-is slower but produces the same values.
+is slower; on the same platform it produces the same values, across platforms it
+does not (see "The verification run" below).
 
 ## Datasets
 
@@ -156,8 +186,13 @@ mlflow ui --backend-store-uri ./mlruns
 - `results/` keeps the metric CSVs and the JSON manifests, both tracked in git.
   Saved models, confusion matrices and ROC curves are generated and gitignored.
 - `plots/final/` holds the publication figures, tracked.
-- `scripts/` has dataset download and conversion, the environment check, and the
-  full-pipeline runner.
+- `scripts/` has dataset download and conversion, the environment check, the
+  full-pipeline runner, the manifest path migration, and the cross-platform
+  comparison tool.
+- `tests/` holds the invariant tests: they use synthetic data, need no dataset
+  and no trained model, and run in seconds. `pytest tests/ -v`.
+- `results/analysis/` holds artifacts derived after the experiment finished,
+  kept separate from the original results in the root of `results/`.
 
 ## What makes a run reproducible
 
@@ -168,7 +203,13 @@ mlflow ui --backend-store-uri ./mlruns
 - SHA-256 dataset hashes in `data/dataset_hashes.json`, recorded into every
   manifest.
 - A JSON manifest per experiment in `results/manifests/`: hyperparameters,
-  library versions, git commit, metrics, cost, artifact paths.
+  library versions, platform, git commit, metrics, cost, artifact paths.
+  The `environment` block (operating system, architecture, BLAS backend,
+  PyTorch backend, profile) is recorded from the audit onwards; the 66
+  manifests committed before it predate the block and are read as the inferred
+  reference profile, marked as inferred rather than recorded.
+- SHA-256 of the three result tables in `results/CHECKSUMS.txt`, so a clone can
+  prove its copy is the one the dissertation cites: `sha256sum -c results/CHECKSUMS.txt`.
 - Local MLflow tracking in `mlruns/`.
 
 Leakage prevention, the split policy and how cost is measured are in

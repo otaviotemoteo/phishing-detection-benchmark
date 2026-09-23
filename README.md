@@ -1,5 +1,8 @@
 # Phishing Detection Benchmark
 
+[![CI](https://github.com/otaviotemoteo/phishing-detection-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/otaviotemoteo/phishing-detection-benchmark/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Published phishing detectors report accuracy numbers close to perfect. This
 project asked a simpler question about them: if a model is that good at
 recognising a fraudulent link, does it stay good when you show it links that
@@ -181,7 +184,7 @@ Schemas, caveats and the hash registry: [`data/README.md`](data/README.md).
 |---|---|
 | [`docs/RESULTS.md`](docs/RESULTS.md) | Every result, figure and interpretation. Start here to see what came out |
 | [`docs/SETUP.md`](docs/SETUP.md) | Installing, fetching data, running the pipeline whole or in pieces |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Ten decision records covering every non-trivial methodological choice |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Fifteen decision records covering every non-trivial methodological choice |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Stack, conventions, roadmap, and the reproducibility protocol in full |
 | [`docs/EXPERIMENT_LOG.md`](docs/EXPERIMENT_LOG.md) | Chronological lab journal of every experiment session |
 
@@ -194,9 +197,19 @@ git clone https://github.com/otaviotemoteo/phishing-detection-benchmark.git
 cd phishing-detection-benchmark
 python3.11 -m venv .venv && source .venv/bin/activate   # Windows: .venv/Scripts/activate
 pip install -r requirements.txt
-brew install libomp                  # macOS only: XGBoost needs the OpenMP runtime
-python scripts/verify_environment.py
 
+python scripts/verify_environment.py # run this first
+```
+
+`verify_environment.py` is the first command for a reason: it identifies your
+platform (operating system, architecture, BLAS backend, PyTorch backend), prints
+what that platform means for the rest of the process, and checks the environment
+against the pins, with the exact fix under anything that fails. The project
+behaves in three known ways, one per platform, and the script tells you which
+one is yours instead of leaving you to find out during a two-hour run. It is the
+single source for that guidance, so it is not repeated here.
+
+```bash
 bash scripts/download_datasets.sh    # fetches 3 of 4; prints the form link for ISCX
 # fill in the UNB CIC form, put iscx_url2016.csv in data/, then:
 bash scripts/download_datasets.sh    # picks it up and writes the hash registry
@@ -204,15 +217,48 @@ bash scripts/download_datasets.sh    # picks it up and writes the hash registry
 bash scripts/run_all.sh              # about 2 h on the reference machine
 ```
 
+The test suite covers the methodological invariants, not the models: split
+disjointness and stratification, SMOTE staying inside the pipeline, URL scheme
+normalization, platform detection, and agreement between the published tables
+and the manifests behind them. It uses synthetic data, needs no dataset, and
+runs in seconds.
+
+```bash
+pytest tests/ -v
+sha256sum -c results/CHECKSUMS.txt   # the published tables are unchanged
+```
+
+To compare a run on your platform against the published one, point
+`scripts/compare_platforms.py` at both manifest directories; it reports each
+metric per platform and the largest gap between them.
+
 Python 3.11, scikit-learn and imbalanced-learn for the classical pipelines,
 XGBoost and CatBoost for the boosted trees, PyTorch for the character-level
 networks, MLflow for run tracking, matplotlib for the figures.
 
-## License and citation
+## License
 
-Code under the MIT License. Datasets keep their original licenses, listed in
-[`data/README.md`](data/README.md).
+Code under the MIT License, in full in [`LICENSE`](LICENSE): use, modify and
+redistribute it, including commercially, keeping the copyright notice. Datasets
+are not covered by it and keep their original licenses, listed in
+[`data/README.md`](data/README.md). Figures and tables may be used with
+attribution to the dissertation cited below.
+
+## How to cite
 
 > TEMOTEO, O. F. Uso de Inteligência Artificial na Detecção de Ataques de
 > Phishing. 2026. Trabalho de Iniciação Científica, SENAI Antonio Adolpho Lobbe,
 > São Carlos, 2026.
+
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff). For BibTeX:
+
+```bibtex
+@misc{temoteo2026phishing,
+  author       = {Temoteo, Ot{\'a}vio Fernandes},
+  title        = {Uso de Intelig{\^e}ncia Artificial na Detec{\c{c}}{\~a}o de Ataques de Phishing},
+  year         = {2026},
+  howpublished = {Trabalho de Inicia{\c{c}}{\~a}o Cient{\'i}fica, SENAI Antonio Adolpho Lobbe},
+  address      = {S{\~a}o Carlos, Brazil},
+  url          = {https://github.com/otaviotemoteo/phishing-detection-benchmark}
+}
+```
