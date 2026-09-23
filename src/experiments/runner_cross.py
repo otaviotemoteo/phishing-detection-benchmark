@@ -42,6 +42,7 @@ from src.data.feature_engineering import (
     build_char_vocab,
     encode_urls,
     extract_url_features,
+    normalize_url_scheme,
     vocab_size,
 )
 from src.data.loaders import load_raw
@@ -70,9 +71,10 @@ from src.utils.manifests import save_manifest
 from src.utils.seeds import set_all_seeds
 
 
-def _normalize_urls(urls):
-    """Strip the URL scheme so lexical features align across datasets (D-010)."""
-    return urls.astype(str).str.replace(r"^https?://", "", regex=True)
+# The rule itself lives in src.data.feature_engineering, so the tests and any
+# other caller reach it without importing this module's training stack. Kept as
+# a local alias because every call site below already uses this name.
+_normalize_urls = normalize_url_scheme
 
 
 def _save_and_record(experiment_id, display, train_ds, test_ds, y_true, y_pred, y_proba,
@@ -145,6 +147,7 @@ def cross_classical(model_key: str, train_ds: str, test_ds: str, *, log_mlflow: 
     hyper = _json_safe(fitted.named_steps["model"].get_params())
 
     def cost_for(X):
+        """Cost dict for one evaluation set: shared training cost, own inference time."""
         return {
             "training_time_s": round(tracker.elapsed_s, 4),
             "inference_time_ms_per_sample": round(measure_inference_time(fitted, X), 6),
@@ -209,6 +212,7 @@ def cross_deep(model_key: str, train_ds: str, test_ds: str, *, log_mlflow: bool 
     }
 
     def cost_for(X):
+        """Cost dict for one evaluation set: shared training cost, own inference time."""
         return {**base, "inference_time_ms_per_sample": round(_measure_inference(model, X), 6)}
 
     # within baseline (A held-out)

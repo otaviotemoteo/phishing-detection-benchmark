@@ -38,6 +38,25 @@ def _is_ip(host: str) -> bool:
         return False
 
 
+def normalize_url_scheme(urls: pd.Series) -> pd.Series:
+    """Strip a leading ``http://`` or ``https://`` from each URL (D-010).
+
+    Cross-dataset transfer is only about phishing patterns if both corpora are
+    written the same way. Mendeley URLs carry the scheme about 100% of the time
+    and the Kaggle corpus about 11.5% of the time, so lexical features such as
+    ``url_length`` and ``has_https`` otherwise encode a data-collection habit.
+    Only a leading scheme is removed: ``http`` appearing anywhere else in the
+    URL, for instance inside a redirect parameter, is left alone.
+
+    Args:
+        urls: Series of URL strings.
+
+    Returns:
+        A Series of URLs without the leading scheme, aligned to ``urls.index``.
+    """
+    return urls.astype(str).str.replace(r"^https?://", "", regex=True)
+
+
 def extract_url_features(urls: pd.Series) -> pd.DataFrame:
     """Extract numeric lexical features from raw URLs.
 
