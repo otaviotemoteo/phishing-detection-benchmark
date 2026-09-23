@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "Uso de Inteligência Artificial na Detecção de Ataques de Phishing"
+abstract: >-
+  A reproducible benchmark of nine phishing detection models, classical and
+  character-level neural, evaluated within dataset and across datasets under one
+  shared protocol, to measure how much of a detector's reported accuracy survives
+  a corpus it has never seen.
+type: software
+authors:
+  - family-names: "Temoteo"
+    given-names: "Otávio Fernandes"
+    affiliation: "SENAI Antonio Adolpho Lobbe"
+license: MIT
+repository-code: "https://github.com/otaviotemoteo/phishing-detection-benchmark"
+date-released: "2026-08-26"
+keywords:
+  - phishing detection
+  - machine learning
+  - deep learning
+  - benchmark
+  - cross-dataset generalization
