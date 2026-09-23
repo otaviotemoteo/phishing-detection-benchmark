@@ -1,10 +1,21 @@
 """
-Experiment manifest generation (DEVELOPMENT.md §6.4).
+Experiment manifest generation and reading (DEVELOPMENT.md §6.4).
 
 Every trained model emits a JSON manifest capturing exactly what produced it:
-code version, dataset hash, seed, hyperparameters, library versions, metrics, cost,
-and artifact paths. If results ever fail to reproduce, the manifest is the first
-place to look.
+code version, dataset hash, seed, hyperparameters, library versions, platform,
+metrics, cost, and artifact paths. If results ever fail to reproduce, the
+manifest is the first place to look.
+
+Two notes on reading manifests written by earlier versions of this module:
+
+- The ``environment`` block was added during the repository audit. The 66
+  manifests already in ``results/manifests/`` predate it and will never have
+  one, because they record real runs that are not going to be repeated. Use
+  `manifest_environment` to read it, which marks an absent block as inferred
+  rather than pretending it was recorded.
+- Artifact paths in those same manifests were absolute paths on the author's
+  machine, rewritten to repository-relative paths by
+  ``scripts/migrate_manifests.py``. Nothing else in them was touched.
 """
 from __future__ import annotations
 
@@ -16,6 +27,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from src.config import MANIFESTS_DIR
+from src.utils.environment import LEGACY_PROFILE, detect_environment
 from src.utils.io import DATASET_FILENAMES, load_dataset_hashes
 
 # Packages whose versions are worth pinning into each manifest for reproducibility.
@@ -96,6 +108,7 @@ def save_manifest(
         "seed": seed,
         "hyperparameters": hyperparameters,
         "library_versions": _library_versions(),
+        "environment": detect_environment(),
         "metrics": metrics,
         "cost": cost,
         "artifacts": artifacts,
@@ -104,3 +117,60 @@ def save_manifest(
     path = MANIFESTS_DIR / f"{experiment_id}.json"
     path.write_text(json.dumps(manifest, indent=2) + "\n")
     return path
+
+
+def load_manifest(path: Path) -> dict:
+    """Read one manifest JSON file, exactly as written.
+
+    Args:
+        path: Path to the manifest file.
+
+    Returns:
+        The parsed manifest dict.
+    """
+    return json.loads(Path(path).read_text())
+
+
+def load_manifests(directory: Path = MANIFESTS_DIR) -> list[dict]:
+    """Read every manifest in ``directory``, sorted by filename.
+
+    Args:
+        directory: Directory holding ``*.json`` manifests. Defaults to
+            ``results/manifests/``.
+
+    Returns:
+        A list of manifest dicts; empty if the directory does not exist.
+    """
+    directory = Path(directory)
+    if not directory.is_dir():
+        return []
+    return [load_manifest(p) for p in sorted(directory.glob("*.json"))]
+
+
+def manifest_environment(manifest: dict) -> dict:
+    """Return a manifest's platform block, flagging it when it had to be inferred.
+
+    Manifests written before the audit carry no ``environment`` block. Rather
+    than fail or silently invent one, this returns the legacy profile with
+    ``inferred=True`` and a note saying where that profile came from, so a
+    reader never mistakes an inference for a recorded measurement.
+
+    Args:
+        manifest: A manifest dict from `load_manifest`.
+
+    Returns:
+        The recorded environment block with ``inferred: False``, or a minimal
+        inferred block with ``inferred: True`` and a ``note``.
+    """
+    recorded = manifest.get("environment")
+    if isinstance(recorded, dict) and recorded:
+        return {**recorded, "inferred": False}
+    return {
+        "profile": LEGACY_PROFILE,
+        "inferred": True,
+        "note": (
+            "No environment block recorded. Profile inferred from the repository "
+            "history (all pre-audit runs were executed on the reference Linux "
+            "machine), not read from the manifest."
+        ),
+    }
