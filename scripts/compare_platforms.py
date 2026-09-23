@@ -39,6 +39,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+from src.utils.environment import KNOWN_PROFILES  # noqa: E402
 from src.utils.manifests import (  # noqa: E402  (needs REPO_ROOT on sys.path)
     load_manifest,
     manifest_environment,
@@ -59,32 +60,102 @@ def run_name(manifest: dict) -> str:
     return _TIMESTAMP.sub("", manifest.get("experiment_id", ""))
 
 
-def collect(directories: list[Path]) -> list[dict]:
-    """Read every manifest under the given directories."""
-    manifests = []
+def collect(directories: list[Path]) -> list[tuple[dict, Path]]:
+    """Read every manifest under the given directories.
+
+    Returns:
+        ``(manifest, source_directory)`` pairs. The directory is kept because a
+        manifest written before the ``environment`` block existed carries no
+        platform of its own, and ``--profile-for`` names it per directory.
+    """
+    manifests: list[tuple[dict, Path]] = []
     for directory in directories:
         if not directory.is_dir():
             print(f"  skipped (not a directory): {directory}")
             continue
         found = sorted(directory.glob("*.json"))
         print(f"  {len(found):3d} manifest(s) in {directory}")
-        manifests.extend(load_manifest(path) for path in found)
+        manifests.extend((load_manifest(path), directory) for path in found)
     return manifests
 
 
-def index_by_run_and_platform(manifests: list[dict]) -> dict[str, dict[str, dict]]:
+def resolve_platform(manifest: dict, directory: Path, overrides: dict[Path, str]) -> dict:
+    """Decide which platform a manifest belongs to, and say where that came from.
+
+    A recorded ``environment`` block always wins: it is a measurement, and an
+    option on a command line does not get to overrule it. An override applies
+    only where there is nothing recorded, which is the case for every manifest
+    written before the audit.
+
+    Args:
+        manifest: The manifest dict.
+        directory: The directory it was read from.
+        overrides: Directory -> profile label, from ``--profile-for``.
+
+    Returns:
+        The environment dict with a ``profile_source`` of ``recorded``,
+        ``declared`` (named on the command line) or ``inferred`` (fallen back to
+        the reference platform, which is a guess).
+    """
+    env = manifest_environment(manifest)
+    if not env.get("inferred"):
+        return {**env, "profile_source": "recorded"}
+
+    override = overrides.get(directory.resolve())
+    if override:
+        return {
+            "profile": override,
+            "blas": env.get("blas", "unknown"),
+            "torch_backend": env.get("torch_backend", "unknown"),
+            "gpu_name": env.get("gpu_name"),
+            "inferred": True,
+            "profile_source": "declared",
+        }
+    return {**env, "profile_source": "inferred"}
+
+
+def parse_profile_overrides(values: list[str]) -> dict[Path, str]:
+    """Parse ``--profile-for DIR=PROFILE`` arguments into a lookup.
+
+    Args:
+        values: Raw ``DIR=PROFILE`` strings.
+
+    Returns:
+        Resolved directory path -> profile label.
+
+    Raises:
+        ValueError: On a malformed pair or an unknown profile label.
+    """
+    overrides: dict[Path, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError(f"expected DIR=PROFILE, got {value!r}")
+        raw_dir, profile = value.rsplit("=", 1)
+        profile = profile.strip()
+        if profile not in KNOWN_PROFILES:
+            raise ValueError(
+                f"unknown profile {profile!r}; expected one of {', '.join(KNOWN_PROFILES)}"
+            )
+        overrides[Path(raw_dir.strip()).resolve()] = profile
+    return overrides
+
+
+def index_by_run_and_platform(
+    manifests: list[tuple[dict, Path]], overrides: dict[Path, str] | None = None
+) -> dict[str, dict[str, dict]]:
     """Group manifests by run name, then by platform profile.
 
     When a run was executed more than once on the same platform, the most recent
     manifest wins and the earlier ones are counted, since repeated runs on one
     platform are the same-platform reproduction and not a cross-platform gap.
     """
+    overrides = overrides or {}
     index: dict[str, dict[str, dict]] = {}
-    for manifest in manifests:
+    for manifest, directory in manifests:
         name = run_name(manifest)
         if not name or "metrics" not in manifest:
             continue
-        env = manifest_environment(manifest)
+        env = resolve_platform(manifest, directory, overrides)
         profile = env.get("profile", "unknown")
         cell = index.setdefault(name, {}).get(profile)
         entry = {"manifest": manifest, "environment": env, "n_runs": 1}
@@ -132,7 +203,7 @@ def build_rows(index: dict[str, dict[str, dict]]) -> list[dict]:
                 "blas": env.get("blas", "unknown"),
                 "torch_backend": env.get("torch_backend", "unknown"),
                 "gpu_name": env.get("gpu_name") or "",
-                "inferred_profile": env.get("inferred", False),
+                "profile_source": env.get("profile_source", "inferred"),
                 "timestamp": manifest.get("timestamp"),
                 "runs_on_this_platform": cell["n_runs"],
             }
@@ -164,6 +235,16 @@ def print_summary(rows: list[dict]) -> None:
             f"blas={row['blas']:<11} torch={row['torch_backend']:<5} {metrics}"
         )
 
+    declared = sum(1 for row in rows if row["profile_source"] == "declared")
+    guessed = sum(1 for row in rows if row["profile_source"] == "inferred")
+    if declared or guessed:
+        print("\nPlatform provenance:")
+        if declared:
+            print(f"  {declared} row(s) declared on the command line, not recorded in the manifest")
+        if guessed:
+            print(f"  {guessed} row(s) fell back to the reference profile: this is a guess.")
+            print("  Name their platform with --profile-for DIR=PROFILE before trusting the gaps.")
+
     print("\nLargest absolute gap between platforms, per metric:")
     for metric in METRIC_COLUMNS:
         gaps = [row[f"{metric}_max_gap"] for row in rows if row[f"{metric}_max_gap"] is not None]
@@ -194,7 +275,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--out", default=str(DEFAULT_OUTPUT), help="where to write the comparison CSV"
     )
+    parser.add_argument(
+        "--profile-for",
+        action="append",
+        default=[],
+        metavar="DIR=PROFILE",
+        help=(
+            "platform of a directory whose manifests predate the environment block, "
+            "e.g. results/manifests_macos=macos-arm64-mps. Repeatable. A recorded "
+            "environment block always wins over this."
+        ),
+    )
     args = parser.parse_args(argv)
+
+    try:
+        overrides = parse_profile_overrides(args.profile_for)
+    except ValueError as exc:
+        print(f"--profile-for: {exc}", file=sys.stderr)
+        return 1
 
     directories = [Path(d) for d in (args.dirs or [str(DEFAULT_MANIFESTS_DIR)])]
     print("Reading manifests:")
@@ -203,7 +301,7 @@ def main(argv: list[str] | None = None) -> int:
         print("\nNo manifests found. Nothing to compare.", file=sys.stderr)
         return 1
 
-    index = index_by_run_and_platform(manifests)
+    index = index_by_run_and_platform(manifests, overrides)
     profiles = sorted({profile for cells in index.values() for profile in cells})
     print(f"\n{len(manifests)} manifest(s), {len(index)} run(s), {len(profiles)} platform(s): "
           f"{', '.join(profiles)}")
@@ -215,7 +313,12 @@ def main(argv: list[str] | None = None) -> int:
             "nothing to compare. Cross-platform comparison needs manifests from a\n"
             "second platform: run the pipeline there and point this script at both\n"
             "directories, for example:\n"
-            "  python scripts/compare_platforms.py results/manifests results/manifests_macos"
+            "  python scripts/compare_platforms.py results/manifests results/manifests_macos\n"
+            "\n"
+            "Manifests written before the environment block existed carry no platform\n"
+            "of their own, and default to the reference profile, which is why they can\n"
+            "look like a single platform. Name them instead of editing them:\n"
+            "  --profile-for results/manifests_macos=macos-arm64-mps"
         )
         return 0
 

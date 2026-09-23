@@ -159,7 +159,7 @@ def test_backend_columns_come_from_the_environment_block(two_platforms, tmp_path
     assert rows["linux-x86_64-cuda"]["torch_backend"] == "cuda"
     assert rows["macos-arm64-mps"]["blas"] == "accelerate"
     assert rows["macos-arm64-mps"]["torch_backend"] == "mps"
-    assert rows["linux-x86_64-cuda"]["inferred_profile"] == "False"
+    assert rows["linux-x86_64-cuda"]["profile_source"] == "recorded"
 
 
 def test_a_manifest_without_an_environment_block_is_marked_inferred(tmp_path):
@@ -172,8 +172,8 @@ def test_a_manifest_without_an_environment_block_is_marked_inferred(tmp_path):
     compare_platforms.main([str(legacy_dir), str(macos_dir), "--out", str(out)])
 
     rows = {row["profile"]: row for row in csv.DictReader(open(out))}
-    assert rows["linux-x86_64-cuda"]["inferred_profile"] == "True"
-    assert rows["macos-arm64-mps"]["inferred_profile"] == "False"
+    assert rows["linux-x86_64-cuda"]["profile_source"] == "inferred"
+    assert rows["macos-arm64-mps"]["profile_source"] == "recorded"
 
 
 def test_repeated_runs_on_one_platform_are_counted_not_compared(tmp_path):
@@ -200,3 +200,68 @@ def test_runs_present_on_only_one_platform_are_left_out(two_platforms, tmp_path)
 
     runs = {row["run"] for row in csv.DictReader(open(out))}
     assert runs == {"RandomForest_uci"}
+
+
+def test_a_directory_can_be_declared_when_its_manifests_predate_the_block(tmp_path):
+    """The macOS and Windows manifests were written before the environment block."""
+    legacy_linux = tmp_path / "linux"
+    legacy_macos = tmp_path / "macos"
+    write_manifest(legacy_linux, "RandomForest_uci_20260707_133708", BASE_METRICS, None)
+    shifted = {**BASE_METRICS, "recall": BASE_METRICS["recall"] + 0.002}
+    write_manifest(legacy_macos, "RandomForest_uci_20260820_090000", shifted, None)
+    out = tmp_path / "comparison.csv"
+
+    exit_code = compare_platforms.main(
+        [
+            str(legacy_linux),
+            str(legacy_macos),
+            "--profile-for",
+            f"{legacy_macos}=macos-arm64-mps",
+            "--out",
+            str(out),
+        ]
+    )
+
+    assert exit_code == 0
+    rows = {row["profile"]: row for row in csv.DictReader(open(out))}
+    assert set(rows) == {"linux-x86_64-cuda", "macos-arm64-mps"}
+    assert rows["macos-arm64-mps"]["profile_source"] == "declared"
+    assert rows["linux-x86_64-cuda"]["profile_source"] == "inferred"
+    assert float(rows["macos-arm64-mps"]["recall_max_gap"]) == pytest.approx(0.002, abs=1e-6)
+
+
+def test_a_recorded_environment_block_beats_the_command_line(tmp_path):
+    """An override may fill a gap; it may not overrule a measurement."""
+    linux_dir = tmp_path / "linux"
+    macos_dir = tmp_path / "macos"
+    write_manifest(linux_dir, "RandomForest_uci_20260707_133708", BASE_METRICS, LINUX)
+    write_manifest(macos_dir, "RandomForest_uci_20260820_090000", BASE_METRICS, MACOS)
+    out = tmp_path / "comparison.csv"
+
+    compare_platforms.main(
+        [
+            str(linux_dir),
+            str(macos_dir),
+            "--profile-for",
+            f"{linux_dir}=windows-x86_64-cpu",
+            "--out",
+            str(out),
+        ]
+    )
+
+    profiles = {row["profile"] for row in csv.DictReader(open(out))}
+    assert profiles == {"linux-x86_64-cuda", "macos-arm64-mps"}
+    assert "windows-x86_64-cpu" not in profiles
+
+
+def test_a_malformed_or_unknown_profile_override_is_rejected(tmp_path):
+    directory = tmp_path / "linux"
+    write_manifest(directory, "RandomForest_uci_20260707_133708", BASE_METRICS, LINUX)
+    out = tmp_path / "comparison.csv"
+
+    assert compare_platforms.main(
+        [str(directory), "--profile-for", "no-equals-sign", "--out", str(out)]
+    ) == 1
+    assert compare_platforms.main(
+        [str(directory), "--profile-for", f"{directory}=solaris-sparc", "--out", str(out)]
+    ) == 1

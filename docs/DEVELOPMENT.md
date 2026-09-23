@@ -653,8 +653,38 @@ python scripts/compare_platforms.py DIR_A DIR_B --out path/to/out.csv
 
 With a single platform in the manifests it prints that there is nothing to
 compare and exits 0, which is the current state of this repository: every
-committed manifest comes from the reference Linux machine. The comparison can be
-produced as soon as the macOS and Windows manifests are committed.
+committed manifest comes from the reference Linux machine.
+
+**Committing the macOS and Windows manifests.** The verification runs on both
+platforms are documented in [`SETUP.md`](SETUP.md), compared against the
+reference by hand. Their manifests are not in the repository, which is why the
+comparison cannot be regenerated from artifacts. The convention for adding them
+is one directory per platform, beside the reference one:
+
+```
+results/manifests/            # linux-x86_64-cuda, the reference
+results/manifests_macos/      # macos-arm64-mps
+results/manifests_windows/    # windows-x86_64-cpu
+```
+
+Those runs predate the `environment` block, so their manifests carry no platform
+of their own and every one of them would otherwise fall back to the reference
+profile, making three platforms look like one. Name the platform at analysis
+time instead of writing it into the files, which would put an assertion made
+after the fact inside an artifact that records a measurement (D-013):
+
+```bash
+python scripts/compare_platforms.py \
+  results/manifests results/manifests_macos results/manifests_windows \
+  --profile-for results/manifests_macos=macos-arm64-mps \
+  --profile-for results/manifests_windows=windows-x86_64-cpu
+```
+
+The `profile_source` column in the output records how each row got its platform:
+`recorded` from the manifest's own block, `declared` from `--profile-for`, or
+`inferred` where neither applied and the reference profile was assumed, which is
+a guess and is reported as one. A recorded block always wins over the command
+line: an option may fill a gap, it may not overrule a measurement.
 
 ### 6.7 Invariant tests
 
