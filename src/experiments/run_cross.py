@@ -30,6 +30,7 @@ PAIRS = [
 
 
 def main() -> None:
+    """Run every cross-dataset pair, skipping the phase if a dataset is missing."""
     parser = argparse.ArgumentParser(description="Run the cross-dataset benchmark.")
     parser.add_argument("--all", action="store_true", help="run all pairs (the default)")
     parser.parse_args()

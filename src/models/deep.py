@@ -28,6 +28,15 @@ class CharCNN(nn.Module):
         self.fc2 = nn.Linear(64, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map a batch of encoded URLs to one logit each.
+
+        Args:
+            x: Integer character ids, shape ``(batch, max_url_length)``.
+
+        Returns:
+            Unnormalized logits of shape ``(batch,)``; apply a sigmoid for the
+            phishing probability.
+        """
         x = self.embed(x).transpose(1, 2)        # [B, embed, L]
         x = torch.relu(self.conv(x))             # [B, filters, L]
         x = torch.amax(x, dim=2)                 # global max-pool -> [B, filters]
@@ -47,6 +56,15 @@ class CharLSTM(nn.Module):
         self.fc2 = nn.Linear(64, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map a batch of encoded URLs to one logit each.
+
+        Args:
+            x: Integer character ids, shape ``(batch, max_url_length)``.
+
+        Returns:
+            Unnormalized logits of shape ``(batch,)``; apply a sigmoid for the
+            phishing probability.
+        """
         x = self.embed(x)                        # [B, L, embed]
         _, (h, _) = self.lstm(x)                 # h: [1, B, hidden]
         x = self.dropout(torch.relu(self.fc1(h[-1])))
@@ -68,6 +86,15 @@ class CharCNNLSTM(nn.Module):
         self.fc = nn.Linear(self._LSTM_HIDDEN, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map a batch of encoded URLs to one logit each.
+
+        Args:
+            x: Integer character ids, shape ``(batch, max_url_length)``.
+
+        Returns:
+            Unnormalized logits of shape ``(batch,)``; apply a sigmoid for the
+            phishing probability.
+        """
         x = self.embed(x).transpose(1, 2)        # [B, embed, L]
         x = self.pool(torch.relu(self.conv(x)))  # [B, filters, L/2]
         x = x.transpose(1, 2)                    # [B, L/2, filters]

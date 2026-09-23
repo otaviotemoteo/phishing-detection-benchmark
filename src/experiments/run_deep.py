@@ -20,6 +20,7 @@ from src.models.deep import DEEP_MODEL_DISPLAY, DEEP_MODEL_NAMES
 
 
 def main() -> None:
+    """Train the requested character-level models on the chosen raw-URL dataset."""
     parser = argparse.ArgumentParser(description="Run the deep learning benchmark.")
     parser.add_argument("--model", default="all", choices=["all", *DEEP_MODEL_NAMES])
     parser.add_argument("--dataset", default="mendeley")

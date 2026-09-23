@@ -193,6 +193,7 @@ _CONVERTERS = {
 
 
 def main(argv: list[str]) -> int:
+    """Dispatch to the converter named by ``argv[0]`` and return an exit code."""
     if len(argv) != 4 or argv[1] not in _CONVERTERS:
         print(__doc__)
         return 2

@@ -43,6 +43,7 @@ def run_one(model_key: str, dataset: str) -> bool:
 
 
 def main() -> None:
+    """Run the requested model/dataset combinations and report how many succeeded."""
     parser = argparse.ArgumentParser(description="Run the classical ML benchmark.")
     parser.add_argument("--model", default="all", choices=["all", *MODEL_NAMES])
     parser.add_argument("--dataset", default="all", choices=["all", *DATASETS])
