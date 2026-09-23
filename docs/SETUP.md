@@ -76,9 +76,14 @@ document you read before you have an environment to run it in.
 
 | Profile | BLAS behind NumPy | PyTorch backend | What to expect from the numbers |
 |---|---|---|---|
-| `linux-x86_64-cuda` | OpenBLAS (x86-64 build) | CUDA | The reference platform. Metric values reproduce exactly |
+| `linux-x86_64-cuda` | OpenBLAS, x86-64 build | CUDA | The reference platform. Metric values reproduce exactly |
 | `macos-arm64-mps` | whatever the arm64 wheel links, printed by the script | MPS | Classical models agree to about the third decimal; neural models diverge in the last decimals |
-| `windows-x86_64-cpu` | OpenBLAS (x86-64 build) | CPU | Not verified end to end here. The neural phases are substantially slower on CPU and there is no committed Windows baseline to compare against |
+| `windows-x86_64-cpu` | OpenBLAS, x86-64 build | CPU | All 33 experiments complete (2026-09-01, i5-14500). Classical metrics agree most closely of the three; the neural phases run on CPU and are slower |
+
+Verified end to end on all three. The manifests committed here come from the
+reference platform only, so `scripts/compare_platforms.py` cannot yet put the
+three side by side: see "The verification run" below for the comparison that was
+done by hand, and commit the macOS and Windows manifests to automate it.
 
 Anything else is labelled `unsupported`: the pipeline should still run, but no
 baseline exists for it, so a numerical difference cannot be attributed.
